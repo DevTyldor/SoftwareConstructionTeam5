@@ -1,0 +1,96 @@
+MAIN URL http://localhost:3000/api/v1
+ 
+GET /warehouses --> returns all warehouses
+GET /warehouses/{id} --> returns the warehouse with the id
+GET /warehouses/{id}/locations --> returns all locations in a warehouse
+ 
+GET /locations --> Returns all locations
+GET /locations/{id} --> Returns a single location of the id
+ 
+GET /transfers --> Returns all transfers
+GET /transfers/{id} --> Returns a single transfer of the id
+GET /transfers/{id}/items --> Returns the items of the transfer of the id
+ 
+GET /items --> Returns all items
+GET /items/{id} --> Returns the item of the id
+GET /items/{id}/inventory --> Returns the inventory of the item of the id
+GET /items/{id}/inventory/totals --> Returns the total of inventory in the item of provided id
+ 
+GET /item_lines --> Returns the descriptions of all items
+GET /item_lines/{id} --> Returns a single description of the id
+GET /item_lines/{id}/items --> Returns all items bound to the given item line id
+ 
+GET /item_groups --> Returns all item groups
+GET /item_groups/{id} --> Returns the item group of the id
+GET /item_groups/{id}/items --> Returns all items in the item group of the given id
+ 
+GET /item_types --> Returns all item types
+GET /item_types/{id} --> Returns the item type of the id
+GET /item_types/{id}/items --> Returns all items of the item type of the given id
+ 
+GET /inventories --> Returns all inventories
+ 
+GET /suppliers --> Returns all suppliers
+GET /suppliers/{id} --> Returns a single supplier of the id
+GET /suppliers/{id}/items --> Returns all items of the supplier of the given id
+ 
+GET /orders --> Returns all orders
+GET /orders/{id} --> Returns the order of the id
+GET /orders/{id}/items --> Returns all items of the order of the given id
+ 
+GET /clients --> Returns all clients
+GET /clients/{id} --> Returns the client of the id
+GET /clients/{id}/orders --> Returns all orders of the client of the given id
+ 
+GET /shipments --> returns all shipments
+GET /shipments/{id} --> returns the shipment of the id
+GET /shipments/{id}/orders --> returns all orders of the shipment of the given id
+GET /shipments/{id}/items --> returns all items of the shipment of the given id
+ 
+
+POST /warehouses
+POST /locations
+POST /transfers
+POST /items
+POST /item_lines
+POST /item_groups
+POST /item_types
+POST /inventories
+POST /suppliers
+POST /orders
+POST /clients
+POST /shipments
+Each endpoint creates a new entity of the respective resource.
+
+DELETE /warehouses/{id}
+DELETE /locations/{id}
+DELETE /transfers/{id}
+DELETE /items/{id}
+DELETE /item_lines/{id}
+DELETE /item_groups/{id}
+DELETE /item_types/{id}
+DELETE /suppliers/{id}
+DELETE /orders/{id}
+DELETE /clients/{id}
+DELETE /shipments/{id}
+Each endpoint deletes the entity bound to the given id
+ 
+PUT /warehouses/{id}
+PUT /locations/{id}
+PUT /items/{id}
+PUT /item_lines/{id}
+PUT /item_groups/{id}
+PUT /item_types/{id}
+PUT /suppliers/{id}
+PUT /clients/{id}
+Each endpoint updates the entity bound to the given id
+ 
+PUT /transfers/{id} --> Updates a transfer with the given id
+PUT /transfers/{id}/commit --> Marks transfer as processed and applies all inventory changes to it
+ 
+PUT /orders/{id} --> Updates an order with the given id
+PUT /orders/{id}/items --> Updates the items bound to the order with the given id
+
+PUT /shipments/{id} --> Updates a shipment with the given id
+PUT /shipments/{id}/items --> Updates the items bound to the shipment with the given id
+PUT /shipments/{id}/orders --> Updates the orders bound to the shipment with the given id
