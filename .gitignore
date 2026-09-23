@@ -6,6 +6,9 @@ ENV/
 .venv.bak/
 venv.bak/
 TestingVenv/
+pytest.ini
+requirements.txt
+tests
 
 
 # Common venv directories/files created by Python
