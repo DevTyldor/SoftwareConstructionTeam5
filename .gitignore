@@ -1,0 +1,25 @@
+# Python virtual environment
+.venv/
+venv/
+env/
+ENV/
+.venv.bak/
+venv.bak/
+TestingVenv/
+
+
+# Common venv directories/files created by Python
+bin/
+lib/
+include/
+share/
+Scripts/
+Lib/
+pyvenv.cfg
+pip-selfcheck.json
+
+# Cache folders
+__pycache__/
+.pytest_cache/
+
+ 
