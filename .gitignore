@@ -31,5 +31,4 @@ __pycache__/
 requests.rest
 
 # data
-./data
-api/data
+data/
