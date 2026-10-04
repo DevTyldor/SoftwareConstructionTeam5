@@ -8,7 +8,6 @@ venv.bak/
 TestingVenv/
 pytest.ini
 requirements.txt
-tests
 
 
 # Common venv directories/files created by Python
@@ -28,4 +27,8 @@ __pycache__/
  # MACOS
  .DS_Store
 
- requests.rest
+# manual tests
+requests.rest
+
+# data
+./data
