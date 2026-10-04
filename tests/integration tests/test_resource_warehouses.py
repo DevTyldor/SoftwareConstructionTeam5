@@ -56,7 +56,7 @@ def test_POST_warehouse_creation(_data):
     url = _data['url'] + 'warehouses'
 
     warehouse = {
-        "id": 11,
+        "id": 999999,
         "code": "BLW-EFC",
         "name": "Jumbo EFC Utrecht",
         "address": "Laan van Mathenesse 9a",
@@ -79,7 +79,7 @@ def test_POST_warehouse_creation(_data):
 
     assert response.status_code == 201
 
-    response = requests.get(_data['url'] + 'warehouses/11', headers={'API_KEY': _data['api_key']})
+    response = requests.get(_data['url'] + 'warehouses/999999', headers={'API_KEY': _data['api_key']})
         
     status_code = response.status_code
         
@@ -91,10 +91,10 @@ def test_POST_warehouse_creation(_data):
 
 
 def test_PUT_warehouse_update(_data):
-    url = _data['url'] + 'warehouses/1'
+    url = _data['url'] + 'warehouses/999999'
 
     warehouse = {
-        "id": 1,
+        "id": 999999,
         "code": "BLW-EFC",
         "name": "Jumbo EFC Utrecht",
         "address": "Laan van Mathenesse 9a",
@@ -117,7 +117,7 @@ def test_PUT_warehouse_update(_data):
 
     assert response.status_code == 200
 
-    response = requests.get(_data['url'] + 'warehouses/1', headers={'API_KEY': _data['api_key']})
+    response = requests.get(_data['url'] + 'warehouses/999999', headers={'API_KEY': _data['api_key']})
     
     status_code = response.status_code
     
@@ -131,7 +131,7 @@ def test_PUT_warehouse_update(_data):
 
 
 def test_DELETE_warehouse_deletion(_data):
-    url = _data['url'] + 'warehouses/1'
+    url = _data['url'] + 'warehouses/999999'
 
     response = requests.delete(
         url,
@@ -141,7 +141,7 @@ def test_DELETE_warehouse_deletion(_data):
     assert response.status_code == 200
 
 
-    response = requests.get(_data['url'] + 'warehouses/1', headers={'API_KEY': _data['api_key']})
+    response = requests.get(_data['url'] + 'warehouses/999999', headers={'API_KEY': _data['api_key']})
     
     status_code = response.status_code
     

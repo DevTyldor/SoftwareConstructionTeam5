@@ -77,10 +77,10 @@ def test_POST_location_creation(_data):
 
 
 def test_PUT_location_update(_data):
-    url = _data['url'] + 'locations/1'
+    url = _data['url'] + 'locations/999999999'
 
     location = {
-        "id": 1,
+        "id": 999999999,
         "warehouse_id": 1,
         "code": "VGH-AMB-B12-R6-B7",
         "name": "New Zone",
@@ -96,7 +96,7 @@ def test_PUT_location_update(_data):
 
     assert response.status_code == 200
 
-    response = requests.get(_data['url'] + 'locations/1', headers={'API_KEY': _data['api_key']})
+    response = requests.get(_data['url'] + 'locations/999999999', headers={'API_KEY': _data['api_key']})
     
     status_code = response.status_code
     
@@ -110,7 +110,7 @@ def test_PUT_location_update(_data):
 
 
 def test_DELETE_location(_data):
-    url = _data['url'] + 'locations/1'
+    url = _data['url'] + 'locations/999999999'
 
     response = requests.delete(
         url,
@@ -120,7 +120,7 @@ def test_DELETE_location(_data):
     assert response.status_code == 200
 
 
-    response = requests.get(_data['url'] + 'locations/1', headers={'API_KEY': _data['api_key']})
+    response = requests.get(_data['url'] + 'locations/999999999', headers={'API_KEY': _data['api_key']})
     
     status_code = response.status_code
     

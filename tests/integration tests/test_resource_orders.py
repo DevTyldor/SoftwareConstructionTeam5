@@ -63,16 +63,16 @@ def test_POST_order_creation(_data):
 
 
 def test_PUT_order_update(_data):
-    url = _data['url'] + 'orders/1'
+    url = _data['url'] + 'orders/999999'
 
     order = {
-    "id": 1,
-    "client_id": 1234,
+    "id": 999999,
+    "client_id": 123,
     "order_date": "2025-03-05T04:42:29Z",
     "request_date": "2025-03-09T00:27:04Z",
     "reference": "ORD-000001",
     "customer_po_number": "PO-662159",
-    "order_status": "Shipped",
+    "order_status": "Delivered",
     "shipping_notes": None,
     "warehouse_id": 2,
     "ship_to_client_id": 31,
@@ -89,7 +89,7 @@ def test_PUT_order_update(_data):
 
     assert response.status_code == 200
 
-    response = requests.get(_data['url'] + 'orders/1', headers={'API_KEY': _data['api_key']})
+    response = requests.get(_data['url'] + 'orders/999999', headers={'API_KEY': _data['api_key']})
     
     status_code = response.status_code
     
@@ -99,7 +99,7 @@ def test_PUT_order_update(_data):
     
     assert response_json is not None, "API returned no order"
     
-    assert response_json["client_id"] == "123", "Order contains old client ID. Update failed."
+    assert response_json["order_status"] == "Delivered", "Order contains old order status. Update failed."
 
 
 def test_PUT_order_items_update(_data):
@@ -126,13 +126,13 @@ def test_PUT_order_items_update(_data):
     
     response_json = response.json()
     
-    assert response_json is not None, "API returned no order items"
+    assert response_json[0] is not None, "API returned no order items"
     
-    assert response_json[0]["item_id"] == "9999", "Order item contains old item ID. Update failed."
+    assert response_json[0]["item_id"] == 9999, "Order item contains old item ID. Update failed."
 
 
 def test_DELETE_order_deletion(_data):
-    url = _data['url'] + 'orders/1'
+    url = _data['url'] + 'orders/999999'
 
     response = requests.delete(
         url,
@@ -142,7 +142,7 @@ def test_DELETE_order_deletion(_data):
     assert response.status_code == 200
 
 
-    response = requests.get(_data['url'] + 'orders/1', headers={'API_KEY': _data['api_key']})
+    response = requests.get(_data['url'] + 'orders/999999', headers={'API_KEY': _data['api_key']})
     
     status_code = response.status_code
     
