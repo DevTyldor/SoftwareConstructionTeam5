@@ -6,7 +6,8 @@ import requests
 def _data():
     return {
         'url': 'http://localhost:3000/api/v1/',
-        'api_key': 'gf38743yjf39kuf309fj8f30kvi908po39jv3uofjoi3'
+        'api_key': 'f4a5c6i7l8i9t0y1m2a3n4a5g6',
+        'receiving_key': 'r2e4c6e8i0v3i5n7g9s',
     }
 
 
@@ -58,7 +59,7 @@ def test_post_transfer(_data):
         ]
     }
 
-    response = requests.post(url, json=new_transfer, headers={'API_KEY': _data['']})
+    response = requests.post(url, json=new_transfer, headers={'API_KEY': _data['receiving_key']})
 
     # Should give 201
     assert response.status_code == 201
@@ -112,7 +113,7 @@ def test_get_transfer_wrong_path(_data):
 def test_post_transfer_empty_body(_data):
     url = _data['url'] + 'transfers'
 
-    response = requests.post(url, json={}, headers={'API_KEY': _data['api_key']})
+    response = requests.post(url, json={}, headers={'API_KEY': _data['receiving_key']})
 
     # Should give 400
     assert response.status_code == 400
@@ -131,7 +132,7 @@ def test_post_transfer_negative_amount(_data):
         ]
     }
 
-    response = requests.post(url, json=new_transfer, headers={'API_KEY': _data['api_key']})
+    response = requests.post(url, json=new_transfer, headers={'API_KEY': _data['receiving_key']})
 
     # Should give 400
     assert response.status_code == 400
@@ -148,7 +149,7 @@ def test_put_transfer_different_id_in_body(_data):
         'to_location_id': 320,
     }
 
-    response = requests.put(url, json=transfer, headers={'API_KEY': _data['api_key']})
+    response = requests.put(url, json=transfer, headers={'API_KEY': _data['receiving_key']})
 
     # Should give 400
     assert response.status_code == 400
@@ -171,7 +172,7 @@ def test_post_transfer_broken_json(_data):
     # Broken json
     broken_json = '{"id": 99997, "reference": '
 
-    response = requests.post(url, data=broken_json, headers={'API_KEY': _data['api_key']})
+    response = requests.post(url, data=broken_json, headers={'API_KEY': _data['receiving_key']})
 
     # Should give 400 not 500
     assert response.status_code == 400
@@ -180,7 +181,7 @@ def test_post_transfer_broken_json(_data):
 def test_commit_transfer_that_does_not_exist(_data):
     url = _data['url'] + 'transfers/999999/commit'
 
-    response = requests.put(url, headers={'API_KEY': _data['api_key']})
+    response = requests.put(url, headers={'API_KEY': _data['receiving_key']})
 
     # Should give 404, not 500
     assert response.status_code == 404
@@ -236,7 +237,7 @@ def test_commit_transfer_with_facility_key(_data):
 def test_delete_transfer(_data):
     url = _data['url'] + 'transfers/1'
 
-    response = requests.delete(url, headers={'API_KEY': _data['api_key']})
+    response = requests.delete(url, headers={'API_KEY': _data['receiving_key']})
 
     # Should give 403
     assert response.status_code == 403
