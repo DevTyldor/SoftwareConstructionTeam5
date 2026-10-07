@@ -1,3 +1,4 @@
+import os
 import pytest
 import requests
 
@@ -10,7 +11,7 @@ import requests
 def _data():
     return{
         'url': 'http://localhost:3000/api/v1',
-        'api_key': 'f4a5c6i7l8i9t0y1m2a3n4a5g6',
+        'api_key': os.getenv('API_KEY'),
     }
 
 #Happy flow test cases for the resource supplier.

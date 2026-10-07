@@ -8,6 +8,7 @@ venv.bak/
 TestingVenv/
 pytest.ini
 requirements.txt
+.env
 
 
 # Common venv directories/files created by Python
