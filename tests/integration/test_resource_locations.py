@@ -119,12 +119,11 @@ def test_DELETE_location(_data):
 
     assert response.status_code == 200
 
-
     response = requests.get(_data['url'] + 'locations/999999999', headers={'API_KEY': _data['api_key']})
     
     status_code = response.status_code
     
-    assert status_code is 200
+    assert status_code == 200
     
     response_json = response.json()
     

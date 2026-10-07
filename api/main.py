@@ -1,868 +1,736 @@
+import json
 import socketserver
 import http.server
-import json
-
-from providers import auth_provider
-from providers import data_provider
+from urllib.parse import urlparse
 
 from processors import notification_processor
+from providers import auth_provider
 
-class ApiRequestHandler(http.server.BaseHTTPRequestHandler):
+from api import (
+    check_user_access,
+    handle_get_warehouses,
+    handle_get_locations,
+    handle_get_transfers,
+    handle_get_items,
+    handle_get_item_lines,
+    handle_get_item_groups,
+    handle_get_item_types,
+    handle_get_inventories,
+    handle_get_suppliers,
+    handle_get_orders,
+    handle_get_clients,
+    handle_get_shipments,
+    handle_post_warehouses,
+    handle_post_locations,
+    handle_post_transfers,
+    handle_post_items,
+    handle_post_item_lines,
+    handle_post_item_groups,
+    handle_post_item_types,
+    handle_post_inventories,
+    handle_post_suppliers,
+    handle_post_orders,
+    handle_post_clients,
+    handle_post_shipments,
+    handle_put_warehouses,
+    handle_put_locations,
+    handle_put_transfers,
+    handle_put_items,
+    handle_put_item_lines,
+    handle_put_item_groups,
+    handle_put_item_types,
+    handle_put_inventories,
+    handle_put_suppliers,
+    handle_put_orders,
+    handle_put_clients,
+    handle_put_shipments,
+    handle_delete_warehouses,
+    handle_delete_locations,
+    handle_delete_transfers,
+    handle_delete_items,
+    handle_delete_item_lines,
+    handle_delete_item_groups,
+    handle_delete_item_types,
+    handle_delete_inventories,
+    handle_delete_suppliers,
+    handle_delete_orders,
+    handle_delete_clients,
+    handle_delete_shipments,
+)
 
-    def handle_get_version_1(self, paths, user):
-        if not auth_provider.has_access(user, paths, "get"):
-            self.send_response(403)
+
+class RequestHandler(http.server.BaseHTTPRequestHandler):
+    # BUGFIX: status 500 upon letters as IDs (e.g: locations/noNumber) --> should be 400: bad request
+    def parse_id(self, value):
+        try:
+            value = int(value)
+        except ValueError:
+            return None
+
+        return value if value > 0 else None
+
+    def get_id(self, value):
+        parsed_id = self.parse_id(value)
+
+        if parsed_id is None:
+            self.send_response(400)
             self.end_headers()
-            return
-        if paths[0] == "warehouses":
-            parts = len(paths)
-            match parts:
-                case 1:
-                    warehouses = data_provider.fetch_warehouse_pool().get_warehouses()
-                    self.send_response(200)
-                    self.send_header("Content-type", "application/json")
-                    self.end_headers()
-                    self.wfile.write(json.dumps(warehouses).encode("utf-8"))
-                case 2:
-                    warehouse_id = int(paths[1])
-                    warehouse = data_provider.fetch_warehouse_pool().get_warehouse(warehouse_id)
-                    self.send_response(200)
-                    self.send_header("Content-type", "application/json")
-                    self.end_headers()
-                    self.wfile.write(json.dumps(warehouse).encode("utf-8"))
-                case 3:
-                    if paths[2] == "locations":
-                        warehouse_id = int(paths[1])
-                        locations = data_provider.fetch_location_pool().get_locations_in_warehouse(warehouse_id)
-                        self.send_response(200)
-                        self.send_header("Content-type", "application/json")
-                        self.end_headers()
-                        self.wfile.write(json.dumps(locations).encode("utf-8"))
-                    else:
-                        self.send_response(404)
-                        self.end_headers()
-                case _:
-                    self.send_response(404)
-                    self.end_headers()
-        elif paths[0] == "locations":
-            parts = len(paths)
-            match parts:
-                case 1:
-                    locations = data_provider.fetch_location_pool().get_locations()
-                    self.send_response(200)
-                    self.send_header("Content-type", "application/json")
-                    self.end_headers()
-                    self.wfile.write(json.dumps(locations).encode("utf-8"))
-                case 2:
-                    location_id = int(paths[1])
-                    location = data_provider.fetch_location_pool().get_location(location_id)
-                    self.send_response(200)
-                    self.send_header("Content-type", "application/json")
-                    self.end_headers()
-                    self.wfile.write(json.dumps(location).encode("utf-8"))
-                case _:
-                    self.send_response(404)
-                    self.end_headers()
-        elif paths[0] == "transfers":
-            parts = len(paths)
-            match parts:
-                case 1:
-                    transfers = data_provider.fetch_transfer_pool().get_transfers()
-                    self.send_response(200)
-                    self.send_header("Content-type", "application/json")
-                    self.end_headers()
-                    self.wfile.write(json.dumps(transfers).encode("utf-8"))
-                case 2:
-                    transfer_id = int(paths[1])
-                    transfer = data_provider.fetch_transfer_pool().get_transfer(transfer_id)
-                    self.send_response(200)
-                    self.send_header("Content-type", "application/json")
-                    self.end_headers()
-                    self.wfile.write(json.dumps(transfer).encode("utf-8"))
-                case 3:
-                    if paths[2] == "items":
-                        transfer_id = int(paths[1])
-                        items = data_provider.fetch_transfer_pool().get_items_in_transfer(transfer_id)
-                        self.send_response(200)
-                        self.send_header("Content-type", "application/json")
-                        self.end_headers()
-                        self.wfile.write(json.dumps(items).encode("utf-8"))
-                    else:
-                        self.send_response(404)
-                        self.end_headers()
-                case _:
-                    self.send_response(404)
-                    self.end_headers()
-        elif paths[0] == "items":
-            parts = len(paths)
-            match parts:
-                case 1:
-                    items = data_provider.fetch_item_pool().get_items()
-                    self.send_response(200)
-                    self.send_header("Content-type", "application/json")
-                    self.end_headers()
-                    self.wfile.write(json.dumps(items).encode("utf-8"))
-                case 2:
-                    item_id = int(paths[1])
-                    item = data_provider.fetch_item_pool().get_item(item_id)
-                    self.send_response(200)
-                    self.send_header("Content-type", "application/json")
-                    self.end_headers()
-                    self.wfile.write(json.dumps(item).encode("utf-8"))
-                case 3:
-                    if paths[2] == "inventory":
-                        item_id = int(paths[1])
-                        inventories = data_provider.fetch_inventory_pool().get_inventories_for_item(item_id)
-                        self.send_response(200)
-                        self.send_header("Content-type", "application/json")
-                        self.end_headers()
-                        self.wfile.write(json.dumps(inventories).encode("utf-8"))
-                    else:
-                        self.send_response(404)
-                        self.end_headers()
-                case 4:
-                    if paths[2] == "inventory" and paths[3] == "totals":
-                        item_id = int(paths[1])
-                        totals = data_provider.fetch_inventory_pool().get_inventory_totals_for_item(item_id)
-                        self.send_response(200)
-                        self.send_header("Content-type", "application/json")
-                        self.end_headers()
-                        self.wfile.write(json.dumps(totals).encode("utf-8"))
-                    else:
-                        self.send_response(404)
-                        self.end_headers()
-                case _:
-                    self.send_response(404)
-                    self.end_headers()
-        elif paths[0] == "item_lines":
-            parts = len(paths)
-            match parts:
-                case 1:
-                    item_lines = data_provider.fetch_item_line_pool().get_item_lines()
-                    self.send_response(200)
-                    self.send_header("Content-type", "application/json")
-                    self.end_headers()
-                    self.wfile.write(json.dumps(item_lines).encode("utf-8"))
-                case 2:
-                    item_line_id = int(paths[1])
-                    item_line = data_provider.fetch_item_line_pool().get_item_line(item_line_id)
-                    self.send_response(200)
-                    self.send_header("Content-type", "application/json")
-                    self.end_headers()
-                    self.wfile.write(json.dumps(item_line).encode("utf-8"))
-                case 3:
-                    if paths[2] == "items":
-                        item_line_id = int(paths[1])
-                        items = data_provider.fetch_item_pool().get_items_for_item_line(item_line_id)
-                        self.send_response(200)
-                        self.send_header("Content-type", "application/json")
-                        self.end_headers()
-                        self.wfile.write(json.dumps(items).encode("utf-8"))
-                    else:
-                        self.send_response(404)
-                        self.end_headers()
-                case _:
-                    self.send_response(404)
-                    self.end_headers()
-        elif paths[0] == "item_groups":
-            parts = len(paths)
-            match parts:
-                case 1:
-                    item_groups = data_provider.fetch_item_group_pool().get_item_groups()
-                    self.send_response(200)
-                    self.send_header("Content-type", "application/json")
-                    self.end_headers()
-                    self.wfile.write(json.dumps(item_groups).encode("utf-8"))
-                case 2:
-                    item_group_id = int(paths[1])
-                    item_group = data_provider.fetch_item_group_pool().get_item_group(item_group_id)
-                    self.send_response(200)
-                    self.send_header("Content-type", "application/json")
-                    self.end_headers()
-                    self.wfile.write(json.dumps(item_group).encode("utf-8"))
-                case 3:
-                    if paths[2] == "items":
-                        item_group_id = int(paths[1])
-                        items = data_provider.fetch_item_pool().get_items_for_item_group(item_group_id)
-                        self.send_response(200)
-                        self.send_header("Content-type", "application/json")
-                        self.end_headers()
-                        self.wfile.write(json.dumps(items).encode("utf-8"))
-                    else:
-                        self.send_response(404)
-                        self.end_headers()
-                case _:
-                    self.send_response(404)
-                    self.end_headers()
-        elif paths[0] == "item_types":
-            parts = len(paths)
-            match parts:
-                case 1:
-                    item_types = data_provider.fetch_item_type_pool().get_item_types()
-                    self.send_response(200)
-                    self.send_header("Content-type", "application/json")
-                    self.end_headers()
-                    self.wfile.write(json.dumps(item_types).encode("utf-8"))
-                case 2:
-                    item_type_id = int(paths[1])
-                    item_type = data_provider.fetch_item_type_pool().get_item_type(item_type_id)
-                    self.send_response(200)
-                    self.send_header("Content-type", "application/json")
-                    self.end_headers()
-                    self.wfile.write(json.dumps(item_type).encode("utf-8"))
-                case 3:
-                    if paths[2] == "items":
-                        item_type_id = int(paths[1])
-                        items = data_provider.fetch_item_pool().get_items_for_item_type(item_type_id)
-                        self.send_response(200)
-                        self.send_header("Content-type", "application/json")
-                        self.end_headers()
-                        self.wfile.write(json.dumps(items).encode("utf-8"))
-                    else:
-                        self.send_response(404)
-                        self.end_headers()
-                case _:
-                    self.send_response(404)
-                    self.end_headers()
-        elif paths[0] == "inventories":
-            parts = len(paths)
-            match parts:
-                case 1:
-                    inventories = data_provider.fetch_inventory_pool().get_inventories()
-                    self.send_response(200)
-                    self.send_header("Content-type", "application/json")
-                    self.end_headers()
-                    self.wfile.write(json.dumps(inventories).encode("utf-8"))
-                case 2:
-                    # Inventory rows are keyed on a composite (item_id, location_id)
-                    # in the new schema, so a single surrogate id has no meaning.
-                    self.send_response(404)
-                    self.end_headers()
-                case _:
-                    self.send_response(404)
-                    self.end_headers()
-        elif paths[0] == "suppliers":
-            parts = len(paths)
-            match parts:
-                case 1:
-                    suppliers = data_provider.fetch_supplier_pool().get_suppliers()
-                    self.send_response(200)
-                    self.send_header("Content-type", "application/json")
-                    self.end_headers()
-                    self.wfile.write(json.dumps(suppliers).encode("utf-8"))
-                case 2:
-                    supplier_id = int(paths[1])
-                    supplier = data_provider.fetch_supplier_pool().get_supplier(supplier_id)
-                    self.send_response(200)
-                    self.send_header("Content-type", "application/json")
-                    self.end_headers()
-                    self.wfile.write(json.dumps(supplier).encode("utf-8"))
-                case 3:
-                    if paths[2] == "items":
-                        supplier_id = int(paths[1])
-                        items = data_provider.fetch_item_pool().get_items_for_supplier(supplier_id)
-                        self.send_response(200)
-                        self.send_header("Content-type", "application/json")
-                        self.end_headers()
-                        self.wfile.write(json.dumps(items).encode("utf-8"))
-                    else:
-                        self.send_response(404)
-                        self.end_headers()
-                case _:
-                    self.send_response(404)
-                    self.end_headers() 
-        elif paths[0] == "orders":
-            parts = len(paths)
-            match parts:
-                case 1:
-                    orders = data_provider.fetch_order_pool().get_orders()
-                    self.send_response(200)
-                    self.send_header("Content-type", "application/json")
-                    self.end_headers()
-                    self.wfile.write(json.dumps(orders).encode("utf-8"))
-                case 2:
-                    order_id = int(paths[1])
-                    order = data_provider.fetch_order_pool().get_order(order_id)
-                    self.send_response(200)
-                    self.send_header("Content-type", "application/json")
-                    self.end_headers()
-                    self.wfile.write(json.dumps(order).encode("utf-8"))
-                case 3:
-                    if paths[2] == "items":
-                        order_id = int(paths[1])
-                        items = data_provider.fetch_order_pool().get_items_in_order(order_id)
-                        self.send_response(200)
-                        self.send_header("Content-type", "application/json")
-                        self.end_headers()
-                        self.wfile.write(json.dumps(items).encode("utf-8"))
-                    else:
-                        self.send_response(404)
-                        self.end_headers()
-                case _:
-                    self.send_response(404)
-                    self.end_headers()
-        elif paths[0] == "clients":
-            parts = len(paths)
-            match parts:
-                case 1:
-                    clients = data_provider.fetch_client_pool().get_clients()
-                    self.send_response(200)
-                    self.send_header("Content-type", "application/json")
-                    self.end_headers()
-                    self.wfile.write(json.dumps(clients).encode("utf-8"))
-                case 2:
-                    client_id = int(paths[1])
-                    client = data_provider.fetch_client_pool().get_client(client_id)
-                    self.send_response(200)
-                    self.send_header("Content-type", "application/json")
-                    self.end_headers()
-                    self.wfile.write(json.dumps(client).encode("utf-8"))     
-                case 3:
-                    if paths[2] == "orders":
-                        client_id = int(paths[1])
-                        orders = data_provider.fetch_order_pool().get_orders_for_client(client_id)
-                        self.send_response(200)
-                        self.send_header("Content-type", "application/json")
-                        self.end_headers()
-                        self.wfile.write(json.dumps(orders).encode("utf-8"))
-                    else:
-                        self.send_response(404)
-                        self.end_headers()
-                case _:
-                    self.send_response(404)
-                    self.end_headers() 
-        elif paths[0] == "shipments":
-            parts = len(paths)
-            match parts:
-                case 1:
-                    shipments = data_provider.fetch_shipment_pool().get_shipments()
-                    self.send_response(200)
-                    self.send_header("Content-type", "application/json")
-                    self.end_headers()
-                    self.wfile.write(json.dumps(shipments).encode("utf-8"))
-                case 2:
-                    shipment_id = int(paths[1])
-                    shipment = data_provider.fetch_shipment_pool().get_shipment(shipment_id)
-                    self.send_response(200)
-                    self.send_header("Content-type", "application/json")
-                    self.end_headers()
-                    self.wfile.write(json.dumps(shipment).encode("utf-8"))
-                case 3:
-                    if paths[2] == "orders":
-                        shipment_id = int(paths[1])
-                        orders = data_provider.fetch_shipment_pool().get_order_ids_in_shipment(shipment_id)
-                        self.send_response(200)
-                        self.send_header("Content-type", "application/json")
-                        self.end_headers()
-                        self.wfile.write(json.dumps(orders).encode("utf-8"))
-                    elif paths[2] == "items":
-                        shipment_id = int(paths[1])
-                        items = data_provider.fetch_shipment_pool().get_items_in_shipment(shipment_id)
-                        self.send_response(200)
-                        self.send_header("Content-type", "application/json")
-                        self.end_headers()
-                        self.wfile.write(json.dumps(items).encode("utf-8"))
-                    else:
-                        self.send_response(404)
-                        self.end_headers()
-                case _:
-                    self.send_response(404)
-                    self.end_headers()
-        else:
+            return None
+
+        return parsed_id
+
+    # ROUTING
+    def route_request(self, method):
+        paths = [path for path in urlparse(self.path).path.split("/") if path]
+
+        # Validate API path
+        if len(paths) < 3 or paths[0] != "api" or paths[1] != "v1":
             self.send_response(404)
             self.end_headers()
+            return
 
-    def do_GET(self):
-        api_key = self.headers.get("API_KEY")
-        user = auth_provider.get_user(api_key)
-        if user == None:
+        # Remove /api/v1/ from the path
+        paths = paths[2:]
+
+        # No resource specified
+        if not paths:
+            self.send_response(404)
+            self.end_headers()
+            return
+
+        user = self.get_user()
+
+        # No or invalid API key: 401
+        if user is None:
             self.send_response(401)
             self.end_headers()
-        else:
-            try:
-                paths = self.path.split("/")
-                if len(paths) > 3 and paths[1] == "api" and paths[2] == "v1":
-                    self.handle_get_version_1(paths[3:], user)
-            except Exception:
-                self.send_response(500)
+            return
+
+        # ============================================================
+        # GET
+        # ============================================================
+
+        if method == "GET":
+
+            if paths[0] == "warehouses":
+                if len(paths) == 1:
+                    handle_get_warehouses(self, user)
+
+                elif len(paths) == 2:
+                    warehouse_id = self.get_id(paths[1])
+
+                    if warehouse_id is None:
+                        return
+                
+                    handle_get_warehouses(
+                        self,
+                        user,
+                        warehouse_id=warehouse_id
+                    )
+                    # TODO: replace all other int(paths[n]) conversions with this self.get_id(paths[n]) and none check return
+
+                elif len(paths) == 3 and paths[2] == "locations":
+                    handle_get_warehouses(
+                        self,
+                        user,
+                        warehouse_id=int(paths[1]),
+                        locations=True,
+                    )
+
+                else:
+                    self.send_response(404)
+                    self.end_headers()
+
+            elif paths[0] == "locations":
+                if len(paths) == 1:
+                    handle_get_locations(self, user)
+
+                elif len(paths) == 2:
+                    handle_get_locations(
+                        self,
+                        user,
+                        location_id=int(paths[1]),
+                    )
+
+                else:
+                    self.send_response(404)
+                    self.end_headers()
+
+            elif paths[0] == "transfers":
+                if len(paths) == 1:
+                    handle_get_transfers(self, user)
+
+                elif len(paths) == 2:
+                    handle_get_transfers(
+                        self,
+                        user,
+                        transfer_id=int(paths[1]),
+                    )
+
+                elif len(paths) == 3 and paths[2] == "items":
+                    handle_get_transfers(
+                        self,
+                        user,
+                        transfer_id=int(paths[1]),
+                        get_items=True,
+                    )
+
+                else:
+                    self.send_response(404)
+                    self.end_headers()
+
+            elif paths[0] == "items":
+                if len(paths) == 1:
+                    handle_get_items(self, user)
+
+                elif len(paths) == 2:
+                    handle_get_items(
+                        self,
+                        user,
+                        item_id=int(paths[1]),
+                    )
+
+                elif len(paths) == 3 and paths[2] == "inventory":
+                    handle_get_items(
+                        self,
+                        user,
+                        item_id=int(paths[1]),
+                        get_inventory=True,
+                    )
+
+                elif (
+                    len(paths) == 4 and paths[2] == "inventory" and paths[3] == "totals"
+                ):
+                    handle_get_items(
+                        self,
+                        user,
+                        item_id=int(paths[1]),
+                        get_totals=True,
+                    )
+
+                else:
+                    self.send_response(404)
+                    self.end_headers()
+
+            elif paths[0] == "item_lines":
+                if len(paths) == 1:
+                    handle_get_item_lines(self, user)
+
+                elif len(paths) == 2:
+                    handle_get_item_lines(
+                        self,
+                        user,
+                        item_line_id=int(paths[1]),
+                    )
+
+                elif len(paths) == 3 and paths[2] == "items":
+                    handle_get_item_lines(
+                        self,
+                        user,
+                        item_line_id=int(paths[1]),
+                        get_items=True,
+                    )
+
+                else:
+                    self.send_response(404)
+                    self.end_headers()
+
+            elif paths[0] == "item_groups":
+                if len(paths) == 1:
+                    handle_get_item_groups(self, user)
+
+                elif len(paths) == 2:
+                    handle_get_item_groups(
+                        self,
+                        user,
+                        item_group_id=int(paths[1]),
+                    )
+
+                elif len(paths) == 3 and paths[2] == "items":
+                    handle_get_item_groups(
+                        self,
+                        user,
+                        item_group_id=int(paths[1]),
+                        get_items=True,
+                    )
+
+                else:
+                    self.send_response(404)
+                    self.end_headers()
+
+            elif paths[0] == "item_types":
+                if len(paths) == 1:
+                    handle_get_item_types(self, user)
+
+                elif len(paths) == 2:
+                    handle_get_item_types(
+                        self,
+                        user,
+                        item_type_id=int(paths[1]),
+                    )
+
+                elif len(paths) == 3 and paths[2] == "items":
+                    handle_get_item_types(
+                        self,
+                        user,
+                        item_type_id=int(paths[1]),
+                        get_items=True,
+                    )
+
+                else:
+                    self.send_response(404)
+                    self.end_headers()
+
+            elif paths[0] == "inventories":
+                if len(paths) == 1:
+                    handle_get_inventories(self, user)
+
+                else:
+                    self.send_response(404)
+                    self.end_headers()
+
+            elif paths[0] == "suppliers":
+                if len(paths) == 1:
+                    handle_get_suppliers(self, user)
+
+                elif len(paths) == 2:
+                    handle_get_suppliers(
+                        self,
+                        user,
+                        supplier_id=int(paths[1]),
+                    )
+
+                elif len(paths) == 3 and paths[2] == "items":
+                    handle_get_suppliers(
+                        self,
+                        user,
+                        supplier_id=int(paths[1]),
+                        get_items=True,
+                    )
+
+                else:
+                    self.send_response(404)
+                    self.end_headers()
+
+            elif paths[0] == "orders":
+                if len(paths) == 1:
+                    handle_get_orders(self, user)
+
+                elif len(paths) == 2:
+                    handle_get_orders(
+                        self,
+                        user,
+                        order_id=int(paths[1]),
+                    )
+
+                elif len(paths) == 3 and paths[2] == "items":
+                    handle_get_orders(
+                        self,
+                        user,
+                        order_id=int(paths[1]),
+                        get_items=True,
+                    )
+
+                else:
+                    self.send_response(404)
+                    self.end_headers()
+
+            elif paths[0] == "clients":
+                if len(paths) == 1:
+                    handle_get_clients(self, user)
+
+                elif len(paths) == 2:
+                    handle_get_clients(
+                        self,
+                        user,
+                        client_id=int(paths[1]),
+                    )
+
+                elif len(paths) == 3 and paths[2] == "orders":
+                    handle_get_clients(
+                        self,
+                        user,
+                        client_id=int(paths[1]),
+                        get_orders=True,
+                    )
+
+                else:
+                    self.send_response(404)
+                    self.end_headers()
+
+            elif paths[0] == "shipments":
+                if len(paths) == 1:
+                    handle_get_shipments(self, user)
+
+                elif len(paths) == 2:
+                    handle_get_shipments(
+                        self,
+                        user,
+                        shipment_id=int(paths[1]),
+                    )
+
+                elif len(paths) == 3 and paths[2] == "orders":
+                    handle_get_shipments(
+                        self,
+                        user,
+                        shipment_id=int(paths[1]),
+                        get_orders=True,
+                    )
+
+                elif len(paths) == 3 and paths[2] == "items":
+                    handle_get_shipments(
+                        self,
+                        user,
+                        shipment_id=int(paths[1]),
+                        get_items=True,
+                    )
+
+                else:
+                    self.send_response(404)
+                    self.end_headers()
+
+            else:
+                self.send_response(404)
                 self.end_headers()
 
-    def handle_post_version_1(self, paths, user):
-        if not auth_provider.has_access(user, paths, "post"):
-            self.send_response(403)
-            self.end_headers()
-            return
-        if paths[0] == "warehouses":
-            content_length = int(self.headers["Content-Length"])
-            post_data = self.rfile.read(content_length)
-            new_warehouse = json.loads(post_data.decode())
-            warehouse_manager = data_provider.fetch_warehouse_pool()
-            warehouse_manager.add_warehouse(new_warehouse)
-            warehouse_manager.save()
-            self.send_response(201)
-            self.end_headers()
-        elif paths[0] == "locations":
-            content_length = int(self.headers["Content-Length"])
-            post_data = self.rfile.read(content_length)
-            new_location = json.loads(post_data.decode())
-            location_manager = data_provider.fetch_location_pool()
-            location_manager.add_location(new_location)
-            location_manager.save()
-            self.send_response(201)
-            self.end_headers()
-        elif paths[0] == "transfers":
-            content_length = int(self.headers["Content-Length"])
-            post_data = self.rfile.read(content_length)
-            new_transfer = json.loads(post_data.decode())
-            transfer_manager = data_provider.fetch_transfer_pool()
-            transfer_manager.add_transfer(new_transfer)
-            transfer_manager.save()
-            notification_processor.push(f"Scheduled batch transfer {new_transfer['id']}")
-            self.send_response(201)
-            self.end_headers()
-        elif paths[0] == "items":
-            content_length = int(self.headers["Content-Length"])
-            post_data = self.rfile.read(content_length)
-            new_item = json.loads(post_data.decode())
-            item_manager = data_provider.fetch_item_pool()
-            item_manager.add_item(new_item)
-            item_manager.save()
-            self.send_response(201)
-            self.end_headers()
-        elif paths[0] == "item_lines":
-            content_length = int(self.headers["Content-Length"])
-            post_data = self.rfile.read(content_length)
-            new_item_line = json.loads(post_data.decode())
-            item_line_manager = data_provider.fetch_item_line_pool()
-            item_line_manager.add_item_line(new_item_line)
-            item_line_manager.save()
-            self.send_response(201)
-            self.end_headers()
-        elif paths[0] == "item_groups":
-            content_length = int(self.headers["Content-Length"])
-            post_data = self.rfile.read(content_length)
-            new_item_group = json.loads(post_data.decode())
-            item_group_manager = data_provider.fetch_item_group_pool()
-            item_group_manager.add_item_group(new_item_group)
-            item_group_manager.save()
-            self.send_response(201)
-            self.end_headers()
-        elif paths[0] == "item_types":
-            content_length = int(self.headers["Content-Length"])
-            post_data = self.rfile.read(content_length)
-            new_item_type = json.loads(post_data.decode())
-            item_type_manager = data_provider.fetch_item_type_pool()
-            item_type_manager.add_item_type(new_item_type)
-            item_type_manager.save()
-            self.send_response(201)
-            self.end_headers()
-        elif paths[0] == "inventories":
-            content_length = int(self.headers["Content-Length"])
-            post_data = self.rfile.read(content_length)
-            new_inventory = json.loads(post_data.decode())
-            inventory_manager = data_provider.fetch_inventory_pool()
-            inventory_manager.add_inventory(new_inventory)
-            inventory_manager.save()
-            self.send_response(201)
-            self.end_headers()
-        elif paths[0] == "suppliers":
-            content_length = int(self.headers["Content-Length"])
-            post_data = self.rfile.read(content_length)
-            new_supplier = json.loads(post_data.decode())
-            supplier_manager = data_provider.fetch_supplier_pool()
-            supplier_manager.add_supplier(new_supplier)
-            supplier_manager.save()
-            self.send_response(201)
-            self.end_headers()
-        elif paths[0] == "orders":
-            content_length = int(self.headers["Content-Length"])
-            post_data = self.rfile.read(content_length)
-            new_order = json.loads(post_data.decode())
-            order_manager = data_provider.fetch_order_pool()
-            order_manager.add_order(new_order)
-            order_manager.save()
-            self.send_response(201)
-            self.end_headers()
-        elif paths[0] == "clients":
-            content_length = int(self.headers["Content-Length"])
-            post_data = self.rfile.read(content_length)
-            new_client = json.loads(post_data.decode())
-            client_manager = data_provider.fetch_client_pool()
-            client_manager.add_client(new_client)
-            client_manager.save()
-            self.send_response(201)
-            self.end_headers()
-        elif paths[0] == "shipments":
-            content_length = int(self.headers["Content-Length"])
-            post_data = self.rfile.read(content_length)
-            new_shipment = json.loads(post_data.decode())
-            shipment_manager = data_provider.fetch_shipment_pool()
-            shipment_manager.add_shipment(new_shipment)
-            shipment_manager.save()
-            self.send_response(201)
-            self.end_headers()
+        # ============================================================
+        # POST
+        # ============================================================
+
+        elif method == "POST":
+
+            if len(paths) != 1:
+                self.send_response(404)
+                self.end_headers()
+                return
+
+            if paths[0] == "warehouses":
+                handle_post_warehouses(self, user)
+
+            elif paths[0] == "locations":
+                handle_post_locations(self, user)
+
+            elif paths[0] == "transfers":
+                handle_post_transfers(self, user)
+
+            elif paths[0] == "items":
+                handle_post_items(self, user)
+
+            elif paths[0] == "item_lines":
+                handle_post_item_lines(self, user)
+
+            elif paths[0] == "item_groups":
+                handle_post_item_groups(self, user)
+
+            elif paths[0] == "item_types":
+                handle_post_item_types(self, user)
+
+            elif paths[0] == "inventories":
+                handle_post_inventories(self, user)
+
+            elif paths[0] == "suppliers":
+                handle_post_suppliers(self, user)
+
+            elif paths[0] == "orders":
+                handle_post_orders(self, user)
+
+            elif paths[0] == "clients":
+                handle_post_clients(self, user)
+
+            elif paths[0] == "shipments":
+                handle_post_shipments(self, user)
+
+            else:
+                self.send_response(404)
+                self.end_headers()
+
+        # ============================================================
+        # PUT
+        # ============================================================
+
+        elif method == "PUT":
+
+            if paths[0] == "warehouses" and len(paths) == 2:
+                handle_put_warehouses(
+                    self,
+                    user,
+                    int(paths[1]),
+                )
+
+            elif paths[0] == "locations" and len(paths) == 2:
+                handle_put_locations(
+                    self,
+                    user,
+                    int(paths[1]),
+                )
+
+            elif paths[0] == "transfers":
+                if len(paths) == 2:
+                    handle_put_transfers(
+                        self,
+                        user,
+                        int(paths[1]),
+                    )
+
+                elif len(paths) == 3 and paths[2] == "commit":
+                    handle_put_transfers(
+                        self,
+                        user,
+                        int(paths[1]),
+                        commit=True,
+                    )
+
+                else:
+                    self.send_response(404)
+                    self.end_headers()
+
+            elif paths[0] == "items" and len(paths) == 2:
+                handle_put_items(
+                    self,
+                    user,
+                    int(paths[1]),
+                )
+
+            elif paths[0] == "item_lines" and len(paths) == 2:
+                handle_put_item_lines(
+                    self,
+                    user,
+                    int(paths[1]),
+                )
+
+            elif paths[0] == "item_groups" and len(paths) == 2:
+                handle_put_item_groups(
+                    self,
+                    user,
+                    int(paths[1]),
+                )
+
+            elif paths[0] == "item_types" and len(paths) == 2:
+                handle_put_item_types(
+                    self,
+                    user,
+                    int(paths[1]),
+                )
+
+            elif paths[0] == "inventories" and len(paths) == 2:
+                handle_put_inventories(
+                    self,
+                    user,
+                    int(paths[1]),
+                )
+
+            elif paths[0] == "suppliers" and len(paths) == 2:
+                handle_put_suppliers(
+                    self,
+                    user,
+                    int(paths[1]),
+                )
+
+            elif paths[0] == "orders":
+                if len(paths) == 2:
+                    handle_put_orders(
+                        self,
+                        user,
+                        int(paths[1]),
+                    )
+
+                elif len(paths) == 3 and paths[2] == "items":
+                    handle_put_orders(
+                        self,
+                        user,
+                        int(paths[1]),
+                        update_items=True,
+                    )
+
+                else:
+                    self.send_response(404)
+                    self.end_headers()
+
+            elif paths[0] == "clients" and len(paths) == 2:
+                handle_put_clients(
+                    self,
+                    user,
+                    int(paths[1]),
+                )
+
+            elif paths[0] == "shipments":
+                if len(paths) == 2:
+                    handle_put_shipments(
+                        self,
+                        user,
+                        int(paths[1]),
+                    )
+
+                elif len(paths) == 3 and paths[2] == "orders":
+                    handle_put_shipments(
+                        self,
+                        user,
+                        int(paths[1]),
+                        update_orders=True,
+                    )
+
+                elif len(paths) == 3 and paths[2] == "items":
+                    handle_put_shipments(
+                        self,
+                        user,
+                        int(paths[1]),
+                        update_items=True,
+                    )
+
+                else:
+                    self.send_response(404)
+                    self.end_headers()
+
+            else:
+                self.send_response(404)
+                self.end_headers()
+
+        # ============================================================
+        # DELETE
+        # ============================================================
+
+        elif method == "DELETE":
+
+            if len(paths) != 2:
+                self.send_response(404)
+                self.end_headers()
+                return
+
+            if paths[0] == "warehouses":
+                handle_delete_warehouses(
+                    self,
+                    user,
+                    int(paths[1]),
+                )
+
+            elif paths[0] == "locations":
+                handle_delete_locations(
+                    self,
+                    user,
+                    int(paths[1]),
+                )
+
+            elif paths[0] == "transfers":
+                handle_delete_transfers(
+                    self,
+                    user,
+                    int(paths[1]),
+                )
+
+            elif paths[0] == "items":
+                handle_delete_items(
+                    self,
+                    user,
+                    int(paths[1]),
+                )
+
+            elif paths[0] == "item_lines":
+                handle_delete_item_lines(
+                    self,
+                    user,
+                    int(paths[1]),
+                )
+
+            elif paths[0] == "item_groups":
+                handle_delete_item_groups(
+                    self,
+                    user,
+                    int(paths[1]),
+                )
+
+            elif paths[0] == "item_types":
+                handle_delete_item_types(
+                    self,
+                    user,
+                    int(paths[1]),
+                )
+
+            elif paths[0] == "inventories":
+                handle_delete_inventories(
+                    self,
+                    user,
+                    int(paths[1]),
+                )
+
+            elif paths[0] == "suppliers":
+                handle_delete_suppliers(
+                    self,
+                    user,
+                    int(paths[1]),
+                )
+
+            elif paths[0] == "orders":
+                handle_delete_orders(
+                    self,
+                    user,
+                    int(paths[1]),
+                )
+
+            elif paths[0] == "clients":
+                handle_delete_clients(
+                    self,
+                    user,
+                    int(paths[1]),
+                )
+
+            elif paths[0] == "shipments":
+                handle_delete_shipments(
+                    self,
+                    user,
+                    int(paths[1]),
+                )
+
+            else:
+                self.send_response(404)
+                self.end_headers()
+
         else:
-            self.send_response(404)
+            self.send_response(405)
+            self.end_headers()
+
+    # HTTP METHODS
+    def do_GET(self):
+        try:
+            self.route_request("GET")
+        except Exception:
+            self.send_response(500)
             self.end_headers()
 
     def do_POST(self):
-        api_key = self.headers.get("API_KEY")
-        user = auth_provider.get_user(api_key)
-        if user == None:
-            self.send_response(401)
-            self.end_headers()
-        else:
-            try:
-                paths = self.path.split("/")
-                if len(paths) > 3 and paths[1] == "api" and paths[2] == "v1":
-                    self.handle_post_version_1(paths[3:], user)
-            except Exception:
-                self.send_response(500)
-                self.end_headers()
-
-    def handle_put_version_1(self, paths, user):
-        if not auth_provider.has_access(user, paths, "put"):
-            self.send_response(403)
-            self.end_headers()
-            return
-        if paths[0] == "warehouses":
-            warehouse_id = int(paths[1])
-            content_length = int(self.headers["Content-Length"])
-            post_data = self.rfile.read(content_length)
-            updated_warehouse = json.loads(post_data.decode())
-            warehouse_manager = data_provider.fetch_warehouse_pool()
-            warehouse_manager.update_warehouse(warehouse_id, updated_warehouse)
-            warehouse_manager.save()
-            self.send_response(200)
-            self.end_headers()
-        elif paths[0] == "locations":
-            location_id = int(paths[1])
-            content_length = int(self.headers["Content-Length"])
-            post_data = self.rfile.read(content_length)
-            updated_location = json.loads(post_data.decode())
-            location_manager = data_provider.fetch_location_pool()
-            location_manager.update_location(location_id, updated_location)
-            location_manager.save()
-            self.send_response(200)
-            self.end_headers()
-        elif paths[0] == "transfers":
-            parts = len(paths)
-            match parts:
-                case 2:
-                    transfer_id = int(paths[1])
-                    content_length = int(self.headers["Content-Length"])
-                    post_data = self.rfile.read(content_length)
-                    updated_transfer = json.loads(post_data.decode())
-                    transfer_manager = data_provider.fetch_transfer_pool()
-                    transfer_manager.update_transfer(transfer_id, updated_transfer)
-                    transfer_manager.save()
-                    self.send_response(200)
-                    self.end_headers()
-                case 3:
-                    if paths[2] == "commit":
-                        transfer_id = int(paths[1])
-                        transfer = data_provider.fetch_transfer_pool().get_transfer(transfer_id)
-                        from_location_id = transfer["from_location_id"]
-                        to_location_id = transfer["to_location_id"]
-                        inventory_pool = data_provider.fetch_inventory_pool()
-                        for x in transfer["items"]:
-                            item_id = x["item_id"]
-                            amount = x["amount"]
-                            # decrease on-hand at the source location
-                            src = inventory_pool.get_inventory(item_id, from_location_id)
-                            if src is not None:
-                                src["quantity_on_hand"] -= amount
-                                inventory_pool.update_inventory(item_id, from_location_id, src)
-                            # increase (or create) on-hand at the destination location
-                            dst = inventory_pool.get_inventory(item_id, to_location_id)
-                            if dst is not None:
-                                dst["quantity_on_hand"] += amount
-                                inventory_pool.update_inventory(item_id, to_location_id, dst)
-                            else:
-                                inventory_pool.add_inventory({
-                                    "item_id": item_id,
-                                    "location_id": to_location_id,
-                                    "quantity_on_hand": amount,
-                                    "quantity_expected": 0,
-                                    "quantity_ordered": 0,
-                                    "quantity_allocated": 0,
-                                })
-                        transfer["transfer_status"] = "Processed"
-                        transfer.pop("items", None)
-                        transfer_manager = data_provider.fetch_transfer_pool()
-                        transfer_manager.update_transfer(transfer_id, transfer)
-                        notification_processor.push(f"Processed batch transfer with id:{transfer['id']}")
-                        transfer_manager.save()
-                        inventory_pool.save()
-                        self.send_response(200)
-                        self.end_headers()
-                    else:
-                        self.send_response(404)
-                        self.end_headers()
-                case _:
-                    self.send_response(404)
-                    self.end_headers()
-        elif paths[0] == "items":
-            item_id = int(paths[1])
-            content_length = int(self.headers["Content-Length"])
-            post_data = self.rfile.read(content_length)
-            updated_item = json.loads(post_data.decode())
-            item_manager = data_provider.fetch_item_pool()
-            item_manager.update_item(item_id, updated_item)
-            item_manager.save()
-            self.send_response(200)
-            self.end_headers()
-        elif paths[0] == "item_lines":
-            item_line_id = int(paths[1])
-            content_length = int(self.headers["Content-Length"])
-            post_data = self.rfile.read(content_length)
-            updated_item_line = json.loads(post_data.decode())
-            item_line_manager = data_provider.fetch_item_line_pool()
-            item_line_manager.update_item_line(item_line_id, updated_item_line)
-            item_line_manager.save()
-            self.send_response(200)
-            self.end_headers()
-        elif paths[0] == "item_groups":
-            item_group_id = int(paths[1])
-            content_length = int(self.headers["Content-Length"])
-            post_data = self.rfile.read(content_length)
-            updated_item_group = json.loads(post_data.decode())
-            item_group_manager = data_provider.fetch_item_group_pool()
-            item_group_manager.update_item_group(item_group_id, updated_item_group)
-            item_group_manager.save()
-            self.send_response(200)
-            self.end_headers()
-        elif paths[0] == "item_types":
-            item_type_id = int(paths[1])
-            content_length = int(self.headers["Content-Length"])
-            post_data = self.rfile.read(content_length)
-            updated_item_type = json.loads(post_data.decode())
-            item_type_manager = data_provider.fetch_item_type_pool()
-            item_type_manager.update_item_type(item_type_id, updated_item_type)
-            item_type_manager.save()
-            self.send_response(200)
-            self.end_headers()
-        elif paths[0] == "inventories":
-            # Inventory rows are keyed on a composite (item_id, location_id); a
-            # single surrogate id is not meaningful in the new schema.
-            self.send_response(404)
-            self.end_headers()
-        elif paths[0] == "suppliers":
-            supplier_id = int(paths[1])
-            content_length = int(self.headers["Content-Length"])
-            post_data = self.rfile.read(content_length)
-            updated_supplier = json.loads(post_data.decode())
-            supplier_manager = data_provider.fetch_supplier_pool()
-            supplier_manager.update_supplier(supplier_id, updated_supplier)
-            supplier_manager.save()
-            self.send_response(200)
-            self.end_headers()
-        elif paths[0] == "orders":
-            parts = len(paths)
-            match parts:
-                case 2:
-                    order_id = int(paths[1])
-                    content_length = int(self.headers["Content-Length"])
-                    post_data = self.rfile.read(content_length)
-                    updated_order = json.loads(post_data.decode())
-                    order_manager = data_provider.fetch_order_pool()
-                    order_manager.update_order(order_id, updated_order)
-                    order_manager.save()
-                    self.send_response(200)
-                    self.end_headers()
-                case 3:
-                    if paths[2] == "items":
-                        order_id = int(paths[1])
-                        content_length = int(self.headers["Content-Length"])
-                        post_data = self.rfile.read(content_length)
-                        updated_items = json.loads(post_data.decode())
-                        order_manager = data_provider.fetch_order_pool()
-                        order_manager.update_items_in_order(order_id, updated_items)
-                        order_manager.save()
-                        self.send_response(200)
-                        self.end_headers()
-                    else:
-                        self.send_response(404)
-                        self.end_headers()
-                case _:
-                    self.send_response(404)
-                    self.end_headers()
-        elif paths[0] == "clients":
-            client_id = int(paths[1])
-            content_length = int(self.headers["Content-Length"])
-            post_data = self.rfile.read(content_length)
-            updated_client = json.loads(post_data.decode())
-            client_manager = data_provider.fetch_client_pool()
-            client_manager.update_client(client_id, updated_client)
-            client_manager.save()
-            self.send_response(200)
-            self.end_headers()
-        elif paths[0] == "shipments":
-            parts = len(paths)
-            match parts:
-                case 2:
-                    shipment_id = int(paths[1])
-                    content_length = int(self.headers["Content-Length"])
-                    post_data = self.rfile.read(content_length)
-                    updated_shipment = json.loads(post_data.decode())
-                    shipment_manager = data_provider.fetch_shipment_pool()
-                    shipment_manager.update_shipment(shipment_id, updated_shipment)
-                    shipment_manager.save()
-                    self.send_response(200)
-                    self.end_headers()
-                case 3:
-                    if paths[2] == "orders":
-                        shipment_id = int(paths[1])
-                        content_length = int(self.headers["Content-Length"])
-                        post_data = self.rfile.read(content_length)
-                        updated_orders = json.loads(post_data.decode())
-                        order_manager = data_provider.fetch_shipment_pool()
-                        order_manager.update_orders_in_shipment(shipment_id, updated_orders)
-                        order_manager.save()
-                        self.send_response(200)
-                        self.end_headers()
-                    elif paths[2] == "items":
-                        shipment_id = int(paths[1])
-                        content_length = int(self.headers["Content-Length"])
-                        post_data = self.rfile.read(content_length)
-                        updated_items = json.loads(post_data.decode())
-                        item_manager = data_provider.fetch_shipment_pool()
-                        item_manager.update_items_in_shipment(shipment_id, updated_items)
-                        item_manager.save()
-                        self.send_response(200)
-                        self.end_headers()
-                    else:
-                        self.send_response(404)
-                        self.end_headers()
-                case _:
-                    self.send_response(404)
-                    self.end_headers()
-        else:
-            self.send_response(404)
+        try:
+            self.route_request("POST")
+        except Exception:
+            self.send_response(500)
             self.end_headers()
 
     def do_PUT(self):
-        api_key = self.headers.get("API_KEY")
-        user = auth_provider.get_user(api_key)
-        if user == None:
-            self.send_response(401)
-            self.end_headers()
-        else:
-            try:
-                paths = self.path.split("/")
-                if len(paths) > 3 and paths[1] == "api" and paths[2] == "v1":
-                    self.handle_put_version_1(paths[3:], user)
-            except Exception:
-                self.send_response(500)
-                self.end_headers()
-
-    def handle_delete_version_1(self, paths, user):
-        if not auth_provider.has_access(user, paths, "delete"):
-            self.send_response(403)
-            self.end_headers()
-            return
-        if paths[0] == "warehouses":
-            warehouse_id = int(paths[1])
-            warehouse_manager = data_provider.fetch_warehouse_pool()
-            warehouse_manager.remove_warehouse(warehouse_id)
-            warehouse_manager.save()
-            self.send_response(200)
-            self.end_headers()
-        elif paths[0] == "locations":
-            location_id = int(paths[1])
-            location_manager = data_provider.fetch_location_pool()
-            location_manager.remove_location(location_id)
-            location_manager.save()
-            self.send_response(200)
-            self.end_headers()
-        elif paths[0] == "transfers":
-            transfer_id = int(paths[1])
-            transfer_manager = data_provider.fetch_transfer_pool()
-            transfer_manager.remove_transfer(transfer_id)
-            transfer_manager.save()
-            self.send_response(200)
-            self.end_headers()
-        elif paths[0] == "items":
-            item_id = int(paths[1])
-            item_manager = data_provider.fetch_item_pool()
-            item_manager.remove_item(item_id)
-            item_manager.save()
-            self.send_response(200)
-            self.end_headers()
-        elif paths[0] == "item_lines":
-            item_line_id = int(paths[1])
-            item_line_manager = data_provider.fetch_item_line_pool()
-            item_line_manager.remove_item_line(item_line_id)
-            item_line_manager.save()
-            self.send_response(200)
-            self.end_headers()
-        elif paths[0] == "item_groups":
-            item_group_id = int(paths[1])
-            item_group_manager = data_provider.fetch_item_group_pool()
-            item_group_manager.remove_item_group(item_group_id)
-            item_group_manager.save()
-            self.send_response(200)
-            self.end_headers()
-        elif paths[0] == "item_types":
-            item_type_id = int(paths[1])
-            item_type_manager = data_provider.fetch_item_type_pool()
-            item_type_manager.remove_item_type(item_type_id)
-            item_type_manager.save()
-            self.send_response(200)
-            self.end_headers()
-        elif paths[0] == "inventories":
-            self.send_response(404)
-            self.end_headers()
-        elif paths[0] == "suppliers":
-            supplier_id = int(paths[1])
-            supplier_manager = data_provider.fetch_supplier_pool()
-            supplier_manager.remove_supplier(supplier_id)
-            supplier_manager.save()
-            self.send_response(200)
-            self.end_headers()
-        elif paths[0] == "orders":
-            order_id = int(paths[1])
-            order_manager = data_provider.fetch_order_pool()
-            order_manager.remove_order(order_id)
-            order_manager.save()
-            self.send_response(200)
-            self.end_headers()
-        elif paths[0] == "clients":
-            client_id = int(paths[1])
-            client_manager = data_provider.fetch_client_pool()
-            client_manager.remove_client(client_id)
-            client_manager.save()
-            self.send_response(200)
-            self.end_headers()
-        elif paths[0] == "shipments":
-            shipment_id = int(paths[1])
-            shipment_manager = data_provider.fetch_shipment_pool()
-            shipment_manager.remove_shipment(shipment_id)
-            shipment_manager.save()
-            self.send_response(200)
-            self.end_headers()
-        else:
-            self.send_response(404)
+        try:
+            self.route_request("PUT")
+        except Exception:
+            self.send_response(500)
             self.end_headers()
 
     def do_DELETE(self):
-        api_key = self.headers.get("API_KEY")
-        user = auth_provider.get_user(api_key)
-        if user == None:
-            self.send_response(401)
+        try:
+            self.route_request("DELETE")
+        except Exception:
+            self.send_response(500)
             self.end_headers()
-        else:
-            try:
-                paths = self.path.split("/")
-                if len(paths) > 3 and paths[1] == "api" and paths[2] == "v1":
-                    self.handle_delete_version_1(paths[3:], user)
-            except Exception:
-                self.send_response(500)
-                self.end_headers()
 
+    # AUTHENTICATION
+    def get_user(self):
+        api_key = self.headers.get("API_KEY")
+
+        if not api_key:
+            return None
+
+        return auth_provider.get_user(api_key)
+
+
+# SERVER STARTUP
 if __name__ == "__main__":
     PORT = 3000
-    with socketserver.TCPServer(("", PORT), ApiRequestHandler) as httpd:
+    with socketserver.TCPServer(("", PORT), RequestHandler) as httpd:
         notification_processor.start()
         print(f"Serving on port {PORT}...")
         httpd.serve_forever()

@@ -8,12 +8,12 @@ from providers import data_provider
 from processors import notification_processor
 
 # AUTHENTICATION
-def check_user_access(self, paths, user, method):
+def check_user_access(handler, paths, user, method):
     if not auth_provider.has_access(user, paths, method):
-        self.send_response(403)
-        self.send_header("Content-Type", "text/plain")
-        self.end_headers()
-        self.wfile.write(b"Access denied to this resource.")
+        handler.send_response(403)
+        handler.send_header("Content-Type", "text/plain")
+        handler.end_headers()
+        handler.wfile.write(b"Access denied to this resource.")
         return False
 
     return True
@@ -23,7 +23,7 @@ def check_user_access(self, paths, user, method):
 # GET /warehouses/{id}
 # GET /warehouses/{id}/locations
 def handle_get_warehouses(self, user, warehouse_id=None, locations=False):
-    if not check_user_access(["warehouses"], user, "get"):
+    if not check_user_access(self, ["warehouses"], user, "get"):
         return
 
     if locations:
@@ -47,7 +47,7 @@ def handle_get_warehouses(self, user, warehouse_id=None, locations=False):
 # GET /locations
 # GET /locations/{id}
 def handle_get_locations(self, user, location_id=None):
-    if not check_user_access(["locations"], user, "get"):
+    if not check_user_access(self, ["locations"], user, "get"):
         return
 
     if location_id is None:
@@ -67,7 +67,7 @@ def handle_get_locations(self, user, location_id=None):
 # GET /transfers/{id}
 # GET /transfers/{id}/items
 def handle_get_transfers(self, user, transfer_id=None, get_items=False):
-    if not check_user_access(["transfers"], user, "get"):
+    if not check_user_access(self, ["transfers"], user, "get"):
         return
 
     if get_items:
@@ -93,7 +93,7 @@ def handle_get_transfers(self, user, transfer_id=None, get_items=False):
 # GET /items/{id}/inventory
 # GET /items/{id}/inventory/totals
 def handle_get_items(self, user, item_id=None, get_inventory=False, get_totals=False):
-    if not check_user_access(["items"], user, "get"):
+    if not check_user_access(self, ["items"], user, "get"):
         return
 
     if get_totals:
@@ -121,7 +121,7 @@ def handle_get_items(self, user, item_id=None, get_inventory=False, get_totals=F
 # GET /item_lines/{id}
 # GET /item_lines/{id}/items
 def handle_get_item_lines(self, user, item_line_id=None, get_items=False):
-    if not check_user_access(["item_lines"], user, "get"):
+    if not check_user_access(self, ["item_lines"], user, "get"):
         return
 
     if get_items:
@@ -146,7 +146,7 @@ def handle_get_item_lines(self, user, item_line_id=None, get_items=False):
 # GET /item_groups/{id}
 # GET /item_groups/{id}/items
 def handle_get_item_groups(self, user, item_group_id=None, get_items=False):
-    if not check_user_access(["item_groups"], user, "get"):
+    if not check_user_access(self, ["item_groups"], user, "get"):
         return
 
     if get_items:
@@ -173,7 +173,7 @@ def handle_get_item_groups(self, user, item_group_id=None, get_items=False):
 # GET /item_types/{id}
 # GET /item_types/{id}/items
 def handle_get_item_types(self, user, item_type_id=None, get_items=False):
-    if not check_user_access(["item_types"], user, "get"):
+    if not check_user_access(self, ["item_types"], user, "get"):
         return
 
     if get_items:
@@ -196,7 +196,7 @@ def handle_get_item_types(self, user, item_type_id=None, get_items=False):
 
 # GET /inventories
 def handle_get_inventories(self, user):
-    if not check_user_access(["inventories"], user, "get"):
+    if not check_user_access(self, ["inventories"], user, "get"):
         return
 
     inventories = data_provider.fetch_inventory_pool().get_inventories()
@@ -212,7 +212,7 @@ def handle_get_inventories(self, user):
 # GET /suppliers/{id}
 # GET /suppliers/{id}/items
 def handle_get_suppliers(self, user, supplier_id=None, get_items=False):
-    if not check_user_access(["suppliers"], user, "get"):
+    if not check_user_access(self, ["suppliers"], user, "get"):
         return
 
     if get_items:
@@ -235,7 +235,7 @@ def handle_get_suppliers(self, user, supplier_id=None, get_items=False):
 # GET /orders/{id}
 # GET /orders/{id}/items
 def handle_get_orders(self, user, order_id=None, get_items=False):
-    if not check_user_access(["orders"], user, "get"):
+    if not check_user_access(self, ["orders"], user, "get"):
         return
 
     if get_items:
@@ -258,7 +258,7 @@ def handle_get_orders(self, user, order_id=None, get_items=False):
 # GET /clients/{id}
 # GET /clients/{id}/orders
 def handle_get_clients(self, user, client_id=None, get_orders=False):
-    if not check_user_access(["clients"], user, "get"):
+    if not check_user_access(self, ["clients"], user, "get"):
         return
 
     if get_orders:
@@ -284,7 +284,7 @@ def handle_get_clients(self, user, client_id=None, get_orders=False):
 def handle_get_shipments(
     self, user, shipment_id=None, get_orders=False, get_items=False
 ):
-    if not check_user_access(["shipments"], user, "get"):
+    if not check_user_access(self, ["shipments"], user, "get"):
         return
 
     if get_orders:
@@ -312,7 +312,7 @@ def handle_get_shipments(
 
 # POST /warehouses
 def handle_post_warehouses(self, user):
-    if not check_user_access(["warehouses"], user, "post"):
+    if not check_user_access(self, ["warehouses"], user, "post"):
         return
 
     content_length = int(self.headers["Content-Length"])
