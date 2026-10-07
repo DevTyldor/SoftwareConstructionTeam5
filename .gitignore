@@ -29,6 +29,3 @@ __pycache__/
 
 # manual tests
 requests.rest
-
-# data
-data/
