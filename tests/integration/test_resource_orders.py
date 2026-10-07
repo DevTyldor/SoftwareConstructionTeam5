@@ -8,7 +8,7 @@ def _data():
     return {
         'url': 'http://localhost:3000/api/v1/',
         'api_key': 'gf38743yjf39kuf309fj8f30kvi908po39jv3uofjoi3',
-        'unauthorized_key': 'xfn38789fg30vff' # Custom key without post, put, delete access on orders but does have get permission
+        'unauthorized_key': 'd4s2a0b0a1n4a0l0y7t' # Custom key without post, put, delete access on orders but does have get permission
     }
 
 def test_GET_order_by_id_regular(_data):
