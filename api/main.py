@@ -866,5 +866,3 @@ if __name__ == "__main__":
         notification_processor.start()
         print(f"Serving on port {PORT}...")
         httpd.serve_forever()
-
-# dev ruleset test
