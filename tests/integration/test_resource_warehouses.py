@@ -146,7 +146,7 @@ def test_DELETE_warehouse_deletion(_data):
     
     status_code = response.status_code
     
-    assert status_code is 200
+    assert status_code == 200
     
     response_json = response.json()
     
@@ -248,7 +248,7 @@ def test_DELETE_warehouse_unauthorized(_data):
     
     status_code = response.status_code
     
-    assert status_code is 200
+    assert status_code == 200
     
     response_json = response.json()
     
@@ -344,7 +344,7 @@ def test_DELETE_warehouse_no_key(_data):
     
     status_code = response.status_code
     
-    assert status_code is 200
+    assert status_code == 200
     
     response_json = response.json()
     
