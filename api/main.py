@@ -89,9 +89,9 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
         kwargs[argument_name] = resource_id
         handler(self, user, **kwargs)
 
-    # 404 helper to remove duplicated logic
-    def not_found(self):
-        self.send_response(404)
+    # error status helper to remove duplicated logic
+    def error_status(self, status):
+        self.send_response(status)
         self.end_headers()
 
     # ROUTING
@@ -101,8 +101,7 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
 
         # Validate API path
         if len(paths) < 3 or paths[0] != "api" or paths[1] != "v1":
-            self.send_response(404)
-            self.end_headers()
+            self.error_status(404)
             return
 
         # Remove /api/v1/ from the path
@@ -110,16 +109,14 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
 
         # No resource specified
         if not paths:
-            self.send_response(404)
-            self.end_headers()
+            self.error_status(404)
             return
 
         user = self.get_user()
 
         # No or invalid API key: 401
         if user is None:
-            self.send_response(401)
-            self.end_headers()
+            self.error_status(401)
             return
 
         # ============================================================
@@ -150,7 +147,7 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
                     )
 
                 else:
-                    self.not_found()
+                    self.error_status(404)
 
             elif paths[0] == "locations":
                 if len(paths) == 1:
@@ -165,7 +162,7 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
                     )
 
                 else:
-                    self.not_found()
+                    self.error_status(404)
 
             elif paths[0] == "transfers":
                 if len(paths) == 1:
@@ -189,7 +186,7 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
                     )
 
                 else:
-                    self.not_found()
+                    self.error_status(404)
 
             elif paths[0] == "items":
                 if len(paths) == 1:
@@ -224,7 +221,7 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
                     )
 
                 else:
-                    self.not_found()
+                    self.error_status(404)
 
             elif paths[0] == "item_lines":
                 if len(paths) == 1:
@@ -248,7 +245,7 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
                     )
 
                 else:
-                    self.not_found()
+                    self.error_status(404)
 
             elif paths[0] == "item_groups":
                 if len(paths) == 1:
@@ -272,7 +269,7 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
                     )
 
                 else:
-                    self.not_found()
+                    self.error_status(404)
 
             elif paths[0] == "item_types":
                 if len(paths) == 1:
@@ -296,14 +293,14 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
                     )
 
                 else:
-                    self.not_found()
+                    self.error_status(404)
 
             elif paths[0] == "inventories":
                 if len(paths) == 1:
                     handle_get_inventories(self, user)
 
                 else:
-                    self.not_found()
+                    self.error_status(404)
 
             elif paths[0] == "suppliers":
                 if len(paths) == 1:
@@ -327,7 +324,7 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
                     )
 
                 else:
-                    self.not_found()
+                    self.error_status(404)
 
             elif paths[0] == "orders":
                 if len(paths) == 1:
@@ -351,7 +348,7 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
                     )
 
                 else:
-                    self.not_found()
+                    self.error_status(404)
 
             elif paths[0] == "clients":
                 if len(paths) == 1:
@@ -375,7 +372,7 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
                     )
 
                 else:
-                    self.not_found()
+                    self.error_status(404)
 
             elif paths[0] == "shipments":
                 if len(paths) == 1:
@@ -408,11 +405,10 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
                     )
 
                 else:
-                    self.not_found()
+                    self.error_status(404)
 
             else:
-                self.send_response(404)
-                self.end_headers()
+                self.error_status(404)
 
         # ============================================================
         # POST
@@ -421,8 +417,7 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
         elif method == "POST":
 
             if len(paths) != 1:
-                self.send_response(404)
-                self.end_headers()
+                self.error_status(404)
                 return
 
             if paths[0] == "warehouses":
@@ -462,8 +457,7 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
                 handle_post_shipments(self, user)
 
             else:
-                self.send_response(404)
-                self.end_headers()
+                self.error_status(404)
 
         # ============================================================
         # PUT
@@ -471,8 +465,7 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
 
         elif method == "PUT":
             if len(paths) < 2:
-                self.send_response(404)
-                self.end_headers()
+                self.error_status(404)
                 return
 
             ID = self.get_id(paths[1])
@@ -493,7 +486,7 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
                     handle_put_transfers(self, user, ID, commit=True)
 
                 else:
-                    self.not_found()
+                    self.error_status(404)
 
             elif paths[0] == "items" and len(paths) == 2:
                 handle_put_items(self, user, ID)
@@ -521,7 +514,7 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
                     handle_put_orders(self, user, ID, update_items=True)
 
                 else:
-                    self.not_found()
+                    self.error_status(404)
 
             elif paths[0] == "clients" and len(paths) == 2:
                 handle_put_clients(self, user, ID)
@@ -537,11 +530,10 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
                     handle_put_shipments(self, user, ID, update_items=True)
 
                 else:
-                    self.not_found()
+                    self.error_status(404)
 
             else:
-                self.send_response(404)
-                self.end_headers()
+                self.error_status(404)
 
         # ============================================================
         # DELETE
@@ -549,8 +541,7 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
 
         elif method == "DELETE":
             if len(paths) != 2:
-                self.send_response(404)
-                self.end_headers()
+                self.error_status(404)
                 return
 
             ID = self.get_id(paths[1])
@@ -594,41 +585,35 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
                 handle_delete_shipments(self, user, ID)
 
             else:
-                self.send_response(404)
-                self.end_headers()
+                self.error_status(404)
 
         else:
-            self.send_response(405)
-            self.end_headers()
+            self.error_status(405)
 
     # HTTP METHODS
     def do_GET(self):
         try:
             self.route_request("GET")
         except Exception:
-            self.send_response(500)
-            self.end_headers()
+            self.error_status(500)
 
     def do_POST(self):
         try:
             self.route_request("POST")
         except Exception:
-            self.send_response(500)
-            self.end_headers()
+            self.error_status(500)
 
     def do_PUT(self):
         try:
             self.route_request("PUT")
         except Exception:
-            self.send_response(500)
-            self.end_headers()
+            self.error_status(500)
 
     def do_DELETE(self):
         try:
             self.route_request("DELETE")
         except Exception:
-            self.send_response(500)
-            self.end_headers()
+            self.error_status(500)
 
     # AUTHENTICATION
     def get_user(self):
