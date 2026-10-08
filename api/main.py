@@ -79,6 +79,7 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
 
         return parsed_id
 
+    # ID conversion helper to remove duplicated logic
     def call_with_id(self, handler, user, raw_id, argument_name, **kwargs):
         resource_id = self.get_id(raw_id)
 
@@ -87,6 +88,11 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
 
         kwargs[argument_name] = resource_id
         handler(self, user, **kwargs)
+
+    # 404 helper to remove duplicated logic
+    def not_found(self):
+        self.send_response(404)
+        self.end_headers()
 
     # ROUTING
     # This large function routes each request to the right handler from api.py
@@ -144,8 +150,7 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
                     )
 
                 else:
-                    self.send_response(404)
-                    self.end_headers()
+                    self.not_found()
 
             elif paths[0] == "locations":
                 if len(paths) == 1:
@@ -160,8 +165,7 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
                     )
 
                 else:
-                    self.send_response(404)
-                    self.end_headers()
+                    self.not_found()
 
             elif paths[0] == "transfers":
                 if len(paths) == 1:
@@ -185,8 +189,7 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
                     )
 
                 else:
-                    self.send_response(404)
-                    self.end_headers()
+                    self.not_found()
 
             elif paths[0] == "items":
                 if len(paths) == 1:
@@ -221,8 +224,7 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
                     )
 
                 else:
-                    self.send_response(404)
-                    self.end_headers()
+                    self.not_found()
 
             elif paths[0] == "item_lines":
                 if len(paths) == 1:
@@ -246,8 +248,7 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
                     )
 
                 else:
-                    self.send_response(404)
-                    self.end_headers()
+                    self.not_found()
 
             elif paths[0] == "item_groups":
                 if len(paths) == 1:
@@ -271,8 +272,7 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
                     )
 
                 else:
-                    self.send_response(404)
-                    self.end_headers()
+                    self.not_found()
 
             elif paths[0] == "item_types":
                 if len(paths) == 1:
@@ -296,16 +296,14 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
                     )
 
                 else:
-                    self.send_response(404)
-                    self.end_headers()
+                    self.not_found()
 
             elif paths[0] == "inventories":
                 if len(paths) == 1:
                     handle_get_inventories(self, user)
 
                 else:
-                    self.send_response(404)
-                    self.end_headers()
+                    self.not_found()
 
             elif paths[0] == "suppliers":
                 if len(paths) == 1:
@@ -329,8 +327,7 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
                     )
 
                 else:
-                    self.send_response(404)
-                    self.end_headers()
+                    self.not_found()
 
             elif paths[0] == "orders":
                 if len(paths) == 1:
@@ -354,8 +351,7 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
                     )
 
                 else:
-                    self.send_response(404)
-                    self.end_headers()
+                    self.not_found()
 
             elif paths[0] == "clients":
                 if len(paths) == 1:
@@ -379,8 +375,7 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
                     )
 
                 else:
-                    self.send_response(404)
-                    self.end_headers()
+                    self.not_found()
 
             elif paths[0] == "shipments":
                 if len(paths) == 1:
@@ -413,8 +408,7 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
                     )
 
                 else:
-                    self.send_response(404)
-                    self.end_headers()
+                    self.not_found()
 
             else:
                 self.send_response(404)
@@ -499,8 +493,7 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
                     handle_put_transfers(self, user, ID, commit=True)
 
                 else:
-                    self.send_response(404)
-                    self.end_headers()
+                    self.not_found()
 
             elif paths[0] == "items" and len(paths) == 2:
                 handle_put_items(self, user, ID)
@@ -528,8 +521,7 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
                     handle_put_orders(self, user, ID, update_items=True)
 
                 else:
-                    self.send_response(404)
-                    self.end_headers()
+                    self.not_found()
 
             elif paths[0] == "clients" and len(paths) == 2:
                 handle_put_clients(self, user, ID)
@@ -545,8 +537,7 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
                     handle_put_shipments(self, user, ID, update_items=True)
 
                 else:
-                    self.send_response(404)
-                    self.end_headers()
+                    self.not_found()
 
             else:
                 self.send_response(404)
