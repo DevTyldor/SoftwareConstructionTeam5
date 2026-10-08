@@ -60,6 +60,7 @@ from api import (
 
 class RequestHandler(http.server.BaseHTTPRequestHandler):
     # BUGFIX: status 500 upon letters as IDs (e.g: locations/noNumber) --> should be 400: bad request
+    # Safe ID conversion
     def parse_id(self, value):
         try:
             value = int(value)
@@ -79,6 +80,7 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
         return parsed_id
 
     # ROUTING
+    # This large function routes each request to the right handler from api.py
     def route_request(self, method):
         paths = [path for path in urlparse(self.path).path.split("/") if path]
 
