@@ -7,6 +7,7 @@ from providers import auth_provider
 from providers import data_provider
 from processors import notification_processor
 
+
 # AUTHENTICATION
 def check_user_access(handler, paths, user, method):
     if not auth_provider.has_access(user, paths, method):
