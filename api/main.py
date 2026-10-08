@@ -79,6 +79,15 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
 
         return parsed_id
 
+    def call_with_id(self, handler, user, raw_id, argument_name, **kwargs):
+        resource_id = self.get_id(raw_id)
+
+        if resource_id is None:
+            return
+
+        kwargs[argument_name] = resource_id
+        handler(self, user, **kwargs)
+
     # ROUTING
     # This large function routes each request to the right handler from api.py
     def route_request(self, method):
@@ -118,21 +127,20 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
                     handle_get_warehouses(self, user)
 
                 elif len(paths) == 2:
-                    warehouse_id = self.get_id(paths[1])
-
-                    if warehouse_id is None:
-                        return
-
-                    handle_get_warehouses(self, user, warehouse_id=warehouse_id)
+                    self.call_with_id(
+                        handle_get_warehouses,
+                        user,
+                        paths[1],
+                        "warehouse_id",
+                    )
 
                 elif len(paths) == 3 and paths[2] == "locations":
-                    warehouse_id = self.get_id(paths[1])
-
-                    if warehouse_id is None:
-                        return
-
-                    handle_get_warehouses(
-                        self, user, warehouse_id=warehouse_id, locations=True
+                    self.call_with_id(
+                        handle_get_warehouses,
+                        user,
+                        paths[1],
+                        "warehouse_id",
+                        locations=True,
                     )
 
                 else:
@@ -144,12 +152,12 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
                     handle_get_locations(self, user)
 
                 elif len(paths) == 2:
-                    location_id = self.get_id(paths[1])
-
-                    if location_id is None:
-                        return
-
-                    handle_get_locations(self, user, location_id=location_id)
+                    self.call_with_id(
+                        handle_get_locations,
+                        user,
+                        paths[1],
+                        "location_id",
+                    )
 
                 else:
                     self.send_response(404)
@@ -160,21 +168,20 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
                     handle_get_transfers(self, user)
 
                 elif len(paths) == 2:
-                    transfer_id = self.get_id(paths[1])
-
-                    if transfer_id is None:
-                        return
-
-                    handle_get_transfers(self, user, transfer_id=transfer_id)
+                    self.call_with_id(
+                        handle_get_transfers,
+                        user,
+                        paths[1],
+                        "transfer_id",
+                    )
 
                 elif len(paths) == 3 and paths[2] == "items":
-                    transfer_id = self.get_id(paths[1])
-
-                    if transfer_id is None:
-                        return
-
-                    handle_get_transfers(
-                        self, user, transfer_id=transfer_id, get_items=True
+                    self.call_with_id(
+                        handle_get_transfers,
+                        user,
+                        paths[1],
+                        "transfer_id",
+                        get_items=True,
                     )
 
                 else:
@@ -186,30 +193,32 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
                     handle_get_items(self, user)
 
                 elif len(paths) == 2:
-                    item_id = self.get_id(paths[1])
-
-                    if item_id is None:
-                        return
-
-                    handle_get_items(self, user, item_id=item_id)
+                    self.call_with_id(
+                        handle_get_items,
+                        user,
+                        paths[1],
+                        "item_id",
+                    )
 
                 elif len(paths) == 3 and paths[2] == "inventory":
-                    item_id = self.get_id(paths[1])
-
-                    if item_id is None:
-                        return
-
-                    handle_get_items(self, user, item_id=item_id, get_inventory=True)
+                    self.call_with_id(
+                        handle_get_items,
+                        user,
+                        paths[1],
+                        "item_id",
+                        get_inventory=True,
+                    )
 
                 elif (
                     len(paths) == 4 and paths[2] == "inventory" and paths[3] == "totals"
                 ):
-                    item_id = self.get_id(paths[1])
-
-                    if item_id is None:
-                        return
-
-                    handle_get_items(self, user, item_id=item_id, get_totals=True)
+                    self.call_with_id(
+                        handle_get_items,
+                        user,
+                        paths[1],
+                        "item_id",
+                        get_totals=True,
+                    )
 
                 else:
                     self.send_response(404)
@@ -220,21 +229,20 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
                     handle_get_item_lines(self, user)
 
                 elif len(paths) == 2:
-                    item_line_id = self.get_id(paths[1])
-
-                    if item_line_id is None:
-                        return
-
-                    handle_get_item_lines(self, user, item_line_id=item_line_id)
+                    self.call_with_id(
+                        handle_get_item_lines,
+                        user,
+                        paths[1],
+                        "item_line_id",
+                    )
 
                 elif len(paths) == 3 and paths[2] == "items":
-                    item_line_id = self.get_id(paths[1])
-
-                    if item_line_id is None:
-                        return
-
-                    handle_get_item_lines(
-                        self, user, item_line_id=item_line_id, get_items=True
+                    self.call_with_id(
+                        handle_get_item_lines,
+                        user,
+                        paths[1],
+                        "item_line_id",
+                        get_items=True,
                     )
 
                 else:
@@ -246,21 +254,20 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
                     handle_get_item_groups(self, user)
 
                 elif len(paths) == 2:
-                    item_group_id = self.get_id(paths[1])
-
-                    if item_group_id is None:
-                        return
-
-                    handle_get_item_groups(self, user, item_group_id=item_group_id)
+                    self.call_with_id(
+                        handle_get_item_groups,
+                        user,
+                        paths[1],
+                        "item_group_id",
+                    )
 
                 elif len(paths) == 3 and paths[2] == "items":
-                    item_group_id = self.get_id(paths[1])
-
-                    if item_group_id is None:
-                        return
-
-                    handle_get_item_groups(
-                        self, user, item_group_id=item_group_id, get_items=True
+                    self.call_with_id(
+                        handle_get_item_groups,
+                        user,
+                        paths[1],
+                        "item_group_id",
+                        get_items=True,
                     )
 
                 else:
@@ -272,21 +279,20 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
                     handle_get_item_types(self, user)
 
                 elif len(paths) == 2:
-                    item_type_id = self.get_id(paths[1])
-
-                    if item_type_id is None:
-                        return
-
-                    handle_get_item_types(self, user, item_type_id=item_type_id)
+                    self.call_with_id(
+                        handle_get_item_types,
+                        user,
+                        paths[1],
+                        "item_type_id",
+                    )
 
                 elif len(paths) == 3 and paths[2] == "items":
-                    item_type_id = self.get_id(paths[1])
-
-                    if item_type_id is None:
-                        return
-
-                    handle_get_item_types(
-                        self, user, item_type_id=item_type_id, get_items=True
+                    self.call_with_id(
+                        handle_get_item_types,
+                        user,
+                        paths[1],
+                        "item_type_id",
+                        get_items=True,
                     )
 
                 else:
@@ -306,21 +312,20 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
                     handle_get_suppliers(self, user)
 
                 elif len(paths) == 2:
-                    supplier_id = self.get_id(paths[1])
-
-                    if supplier_id is None:
-                        return
-
-                    handle_get_suppliers(self, user, supplier_id=supplier_id)
+                    self.call_with_id(
+                        handle_get_suppliers,
+                        user,
+                        paths[1],
+                        "supplier_id",
+                    )
 
                 elif len(paths) == 3 and paths[2] == "items":
-                    supplier_id = self.get_id(paths[1])
-
-                    if supplier_id is None:
-                        return
-
-                    handle_get_suppliers(
-                        self, user, supplier_id=supplier_id, get_items=True
+                    self.call_with_id(
+                        handle_get_suppliers,
+                        user,
+                        paths[1],
+                        "supplier_id",
+                        get_items=True,
                     )
 
                 else:
@@ -332,20 +337,21 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
                     handle_get_orders(self, user)
 
                 elif len(paths) == 2:
-                    order_id = self.get_id(paths[1])
-
-                    if order_id is None:
-                        return
-
-                    handle_get_orders(self, user, order_id=order_id)
+                    self.call_with_id(
+                        handle_get_orders,
+                        user,
+                        paths[1],
+                        "order_id",
+                    )
 
                 elif len(paths) == 3 and paths[2] == "items":
-                    order_id = self.get_id(paths[1])
-
-                    if order_id is None:
-                        return
-
-                    handle_get_orders(self, user, order_id=order_id, get_items=True)
+                    self.call_with_id(
+                        handle_get_orders,
+                        user,
+                        paths[1],
+                        "order_id",
+                        get_items=True,
+                    )
 
                 else:
                     self.send_response(404)
@@ -356,20 +362,21 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
                     handle_get_clients(self, user)
 
                 elif len(paths) == 2:
-                    client_id = self.get_id(paths[1])
-
-                    if client_id is None:
-                        return
-
-                    handle_get_clients(self, user, client_id=client_id)
+                    self.call_with_id(
+                        handle_get_clients,
+                        user,
+                        paths[1],
+                        "client_id",
+                    )
 
                 elif len(paths) == 3 and paths[2] == "orders":
-                    client_id = self.get_id(paths[1])
-
-                    if client_id is None:
-                        return
-
-                    handle_get_clients(self, user, client_id=client_id, get_orders=True)
+                    self.call_with_id(
+                        handle_get_clients,
+                        user,
+                        paths[1],
+                        "client_id",
+                        get_orders=True,
+                    )
 
                 else:
                     self.send_response(404)
@@ -380,31 +387,29 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
                     handle_get_shipments(self, user)
 
                 elif len(paths) == 2:
-                    shipment_id = self.get_id(paths[1])
-
-                    if shipment_id is None:
-                        return
-
-                    handle_get_shipments(self, user, shipment_id=shipment_id)
+                    self.call_with_id(
+                        handle_get_shipments,
+                        user,
+                        paths[1],
+                        "shipment_id",
+                    )
 
                 elif len(paths) == 3 and paths[2] == "orders":
-                    shipment_id = self.get_id(paths[1])
-
-                    if shipment_id is None:
-                        return
-
-                    handle_get_shipments(
-                        self, user, shipment_id=shipment_id, get_orders=True
+                    self.call_with_id(
+                        handle_get_shipments,
+                        user,
+                        paths[1],
+                        "shipment_id",
+                        get_orders=True,
                     )
 
                 elif len(paths) == 3 and paths[2] == "items":
-                    shipment_id = self.get_id(paths[1])
-
-                    if shipment_id is None:
-                        return
-
-                    handle_get_shipments(
-                        self, user, shipment_id=shipment_id, get_items=True
+                    self.call_with_id(
+                        handle_get_shipments,
+                        user,
+                        paths[1],
+                        "shipment_id",
+                        get_items=True,
                     )
 
                 else:
