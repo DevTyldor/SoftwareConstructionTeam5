@@ -7,7 +7,6 @@ from processors import notification_processor
 from providers import auth_provider
 
 from api import (
-    check_user_access,
     handle_get_warehouses,
     handle_get_locations,
     handle_get_transfers,
