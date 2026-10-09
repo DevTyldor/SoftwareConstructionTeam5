@@ -11,6 +11,11 @@ from processors import notification_processor
 # AUTHENTICATION
 def check_user_access(handler, paths, user, method):
     if not auth_provider.has_access(user, paths, method):
+        # Dit is een fix voor connection timed out (Stefano)
+        length = int(handler.headers.get("Content-Length", 0) or 0)
+        if length:
+            handler.rfile.read(length)
+
         handler.send_response(403)
         handler.send_header("Content-Type", "text/plain")
         handler.end_headers()
@@ -18,6 +23,7 @@ def check_user_access(handler, paths, user, method):
         return False
 
     return True
+
 
 
 # GET /warehouses

@@ -116,8 +116,14 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
 
         # No or invalid API key: 401
         if user is None:
+            # Dit is een fix voor connection timed out (Stefano)
+            length = int(self.headers.get("Content-Length", 0) or 0)
+            if length:
+                self.rfile.read(length)
+
             self.error_status(401)
             return
+
 
         # ============================================================
         # GET
