@@ -102,24 +102,24 @@ jobs:
         if: failure()
         run: cat server.log
 
-ci-status:
-  needs: [lint, integration-tests]
-  if: always()
-  runs-on: ubuntu-latest
-  steps:
-    - name: Fails on any job fail
-      run: |
-        if [ "${{ needs.lint.result }}" != "success" ]; then
-          echo "Linting job failed."
-          exit 1
-        fi
-        if [ "${{ needs.integration-tests.result }}" != "success" ]; then
-          echo "Integration tests job failed."
-          exit 1
-        fi
-          if [ -f integration_test_results.xml ]; then
-            echo "Integration tests passed."
-          else
-            echo "Integration tests failed."
-            exit 1
-          fi
+      - name: ci-status
+        needs: [lint, integration-tests]
+        if: always()
+        runs-on: ubuntu-latest
+        steps:
+          - name: Fails on any job fail
+            run: |
+              if [ "${{ needs.lint.result }}" != "success" ]; then
+                echo "Linting job failed."
+                exit 1
+              fi
+              if [ "${{ needs.integration-tests.result }}" != "success" ]; then
+                echo "Integration tests job failed."
+                exit 1
+              fi
+                if [ -f integration_test_results.xml ]; then
+                  echo "Integration tests passed."
+                else
+                  echo "Integration tests failed."
+                  exit 1
+                fi
