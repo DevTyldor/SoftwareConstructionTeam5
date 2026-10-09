@@ -1,0 +1,108 @@
+
+# This workflow will run on pull requests to the dev branch and can also be triggered manually.
+# This workflow will run a series of tests on the codebase to ensure that it is functioning correctly.
+name: CI
+on:
+  pull_request:
+    branches: [ dev ]
+  workflow_dispatch:
+    inputs:
+      run-tests:
+        description: 'Run tests'
+        required: true
+        default: 'true'
+
+#Check if there is a new commit on the dev branch and run the tests on it.
+#This also cancels olders job, so the tests are only run on the latest commit.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+#Setup environment variables for the workflow, including the API key and Python version.
+env:
+  API_KEY: ${{ secrets.API_KEY }}
+  PYTHON_VERSION: "3.14"
+
+#Job 1: Linting to identify early issues with the codebase.
+#Run quick ruff check to identify any issues with the codebase before running the full test suite.
+jobs:
+  lint:
+    name: Fast checks, Early Fails/Feedback
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: "pip"
+      - run: pip install ruff
+      - run: ruff check
+
+#Job 2: Run the full test suite to ensure that the codebase is functioning correctly.
+  integration-tests:
+    # needs: lint
+    name: Run all integration tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+
+#Setup environment variables for the integration tests, including the API key and base URL for the API.
+    env:
+      API_KEY: ${{ secrets.API_KEY }}
+      API_BASE_URL: "http://localhost:3000/api/v1"
+      PYTHON_VERSION: "3.14"
+      TESTDATA_DIR: ${{ github.workspace }}/data
+    steps:
+#1. Checkout codebase
+      - name: Checkout code
+        uses: actions/checkout@v4
+#Fetch test data from the private repository using a personal access token stored in the repository secrets.
+      - name: Checkout Test Data
+        uses: actions/checkout@v4
+        with:
+          repository: Nsamijo/data
+          token: ${{ secrets.TEST_DATA_REPO_TOKEN }}
+          path: data
+#3. Setup Python environment with correct version.
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: "pip"
+#4. Install dependencies from requirements.txt file.
+      - name: Install dependancies
+        uses: actions/python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - run: pip install -r requirements.txt
+#5. Start the API server in the background and check every second for 5 seconds
+#   if the server has started successfully by checking the server log for any errors.
+#Test if server is up and running by checking the server log for any errors.
+      - name: Start API server
+        run: |
+          python3 main.py > server.log 2>&1 &
+          for seconds in {1..5}; do
+            if curl -sf http://localhost:3000/api/v1/health > /dev/null; then
+              echo "Server is up and running. Check server.log for details."
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "Server failed to start. Check server.log for details."
+          cat server.log
+          exit 1
+#6. Run the integration tests using pytest and generate a JUnit XML report for the test results.
+      - name : Run integration tests
+        run: pytest tests/integration -v --junitxml=integration_test_results.xml --disable-warnings
+#7 Upload the JUnit XML report to GitHub Actions for easy viewing of test results.
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-results
+          path: integration_test_results.xml
+#8. Show server log on failure
+      - name: Show server log on failure
+        if: failure()
+        run: cat server.log
