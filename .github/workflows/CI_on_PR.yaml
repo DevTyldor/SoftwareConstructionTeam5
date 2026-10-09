@@ -5,7 +5,8 @@ name: CI
 on:
   pull_request:
     branches: [ dev ]
-
+  workflow_dispatch:
+    requested-with: [workflow_dispatch]
 
 #Check if there is a new commit on the dev branch and run the tests on it.
 #This also cancels olders job, so the tests are only run on the latest commit.
