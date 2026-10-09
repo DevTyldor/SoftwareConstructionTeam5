@@ -67,7 +67,7 @@ jobs:
           cache: "pip"
 #4. Install dependencies from requirements.txt file.
       - name: Install dependancies
-      - uses: actions/python@v4
+        uses: actions/python@v4
         with:
           python-version: ${{ env.PYTHON_VERSION }}
       - run: pip install -r requirements.txt
