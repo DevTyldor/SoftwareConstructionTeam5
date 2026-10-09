@@ -68,10 +68,55 @@ jobs:
 #4. Install dependencies from requirements.txt file.
       - name: Install dependancies
       - run: pip install -r requirements.txt
-
+#5. Start the API server in the background and check every second for 5 seconds
+#   if the server has started successfully by checking the server log for any errors.
+#Test if server is up and running by checking the server log for any errors.
       - name: Start API server
         run: |
-          # Start the API server in the background
-          python -m api_server &
-          # Wait for the server to start (adjust the sleep time as needed)
-          sleep 5
+          python3 main.py > server.log 2>&1 &
+          for seconds in {1..5}; do
+            if curl -sf http://localhost:3000/api/v1/health > /dev/null; then
+              echo "Server is up and running. Check server.log for details."
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "Server failed to start. Check server.log for details."
+          cat server.log
+          exit 1
+#6. Run the integration tests using pytest and generate a JUnit XML report for the test results.
+      - name : Run integration tests
+        run: pytest tests/integration -v --junitxml=integration_test_results.xml --disable-warnings
+#7 Upload the JUnit XML report to GitHub Actions for easy viewing of test results.
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-results
+          path: integration_test_results.xml
+#8. Show server log on failure
+      - name: Show server log on failure
+        if: failure()
+        run: cat server.log
+
+ci-status:
+  needs: [lint, integration-tests]
+  if: always()
+  runs-on: ubuntu-latest
+  steps:
+    - name: Fails on any job fail
+      run: |
+        if [ "${{ needs.lint.result }}" != "success" ]; then
+          echo "Linting job failed."
+          exit 1
+        fi
+        if [ "${{ needs.integration-tests.result }}" != "success" ]; then
+          echo "Integration tests job failed."
+          exit 1
+        fi
+          if [ -f integration_test_results.xml ]; then
+            echo "Integration tests passed."
+          else
+            echo "Integration tests failed."
+            exit 1
+          fi
