@@ -1,0 +1,77 @@
+name: CI
+
+# This workflow will run on pull requests to the dev branch and can also be triggered manually.
+# This workflow will run a series of tests on the codebase to ensure that it is functioning correctly.
+on:
+  pull_request:
+    branches: [ dev ]
+  workflow_dispatch:
+
+#Check if there is a new commit on the dev branch and run the tests on it.
+#This also cancels olders job, so the tests are only run on the latest commit.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+#Setup environment variables for the workflow, including the API key and Python version.
+env:
+  API_KEY: ${{ secrets.API_KEY }}
+  PYTHON_VERSION: "3.14"
+
+#Job 1: Linting to identify early issues with the codebase.
+#Run quick ruff check to identify any issues with the codebase before running the full test suite.
+jobs:
+  lint:
+    name: Fast checks, Early Fails/Feedback
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: "pip"
+      - run: pip install ruff
+      - run: ruff check
+
+#Job 2: Run the full test suite to ensure that the codebase is functioning correctly.
+  integration-tests:
+    needs: lint
+    name: Run all integration tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+#Setup environment variables for the integration tests, including the API key and base URL for the API.
+    env:
+      API_KEY: ${{ secrets.API_KEY }}
+      API_BASE_URL: "http://localhost:3000/api/v1"
+      PYTHON_VERSION: "3.14"
+      TESTDATA_DIR: ${{ github.workspace }}/data
+    steps:
+#1. Checkout codebase
+      - name: Checkout code
+        uses: actions/checkout@v4
+#Fetch test data from the private repository using a personal access token stored in the repository secrets.
+      - name: Checkout Test Data
+        uses: actions/checkout@v4
+        with:
+          repository: Nsamijo/data
+          token: ${{ secrets.TEST_DATA_REPO_TOKEN }}
+          path: data
+#3. Setup Python environment with correct version.
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: "pip"
+#4. Install dependencies from requirements.txt file.
+      - name: Install dependancies
+      - run: pip install -r requirements.txt
+
+      - name: Start API server
+        run: |
+          # Start the API server in the background
+          python -m api_server &
+          # Wait for the server to start (adjust the sleep time as needed)
+          sleep 5
