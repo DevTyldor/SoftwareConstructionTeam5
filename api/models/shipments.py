@@ -1,5 +1,3 @@
-import json
-
 from models.base import Base
 from providers import data_provider
 
@@ -7,20 +5,19 @@ SHIPMENTS = []
 
 class Shipments(Base):
     def __init__(self, root_path, is_debug=False):
-        self.data_path = root_path + "shipment.json"
-        self.load(is_debug)
+        Base.__init__(self, root_path + "shipment.json", SHIPMENTS, is_debug)
 
     def get_shipments(self):
         result = []
-        for x in self.data:
+        for x in self.get_all():
             result.append(self._with_items(x))
         return result
 
     def get_shipment(self, shipment_id):
-        for x in self.data:
-            if x["id"] == shipment_id:
-                return self._with_items(x)
-        return None
+        shipment = self.get_by_id(shipment_id)
+        if shipment is None:
+            return None
+        return self._with_items(shipment)
 
     def get_items_in_shipment(self, shipment_id):
         rows = data_provider.fetch_shipment_item_pool().get_items_for_shipment(shipment_id)
@@ -29,26 +26,20 @@ class Shipments(Base):
     def get_order_ids_in_shipment(self, shipment_id):
         """In the new schema shipment.order_id -> order.id (1:1), so a shipment
         carries exactly one order id (or none)."""
-        for x in self.data:
-            if x["id"] == shipment_id:
-                order_id = x.get("order_id")
-                return [order_id] if order_id is not None else []
-        return []
+        shipment = self.get_by_id(shipment_id)
+        if shipment is None:
+            return []
+        order_id = shipment.get("order_id")
+        return [order_id] if order_id is not None else []
 
     def add_shipment(self, shipment):
         items = shipment.pop("items", [])
-        shipment["created_at"] = self.get_timestamp()
-        shipment["updated_at"] = self.get_timestamp()
-        self.data.append(shipment)
+        self.add(shipment)
         data_provider.fetch_shipment_item_pool().set_items_for_shipment(shipment["id"], items)
 
     def update_shipment(self, shipment_id, shipment):
         items = shipment.pop("items", None)
-        shipment["updated_at"] = self.get_timestamp()
-        for i in range(len(self.data)):
-            if self.data[i]["id"] == shipment_id:
-                self.data[i] = shipment
-                break
+        self.update(shipment_id, shipment)
         if items is not None:
             self.update_items_in_shipment(shipment_id, items)
 
@@ -83,31 +74,16 @@ class Shipments(Base):
         """In the new schema a shipment references a single order (shipment.order_id).
         We accept a list for backwards compatibility with the v1 endpoint and keep
         the first id, clearing the link when the list is empty."""
-        for i in range(len(self.data)):
-            if self.data[i]["id"] == shipment_id:
-                self.data[i]["order_id"] = order_ids[0] if order_ids else None
-                self.data[i]["updated_at"] = self.get_timestamp()
-                break
+        shipment = self.get_by_id(shipment_id)
+        if shipment is not None:
+            shipment["order_id"] = order_ids[0] if order_ids else None
+            shipment["updated_at"] = self.get_timestamp()
 
     def remove_shipment(self, shipment_id):
-        for x in self.data:
-            if x["id"] == shipment_id:
-                self.data.remove(x)
-                break
+        self.remove(shipment_id)
         data_provider.fetch_shipment_item_pool().remove_items_for_shipment(shipment_id)
 
     def _with_items(self, shipment):
         shipment = dict(shipment)
         shipment["items"] = self.get_items_in_shipment(shipment["id"])
         return shipment
-
-    def load(self, is_debug):
-        if is_debug:
-            self.data = SHIPMENTS
-        else:
-            with open(self.data_path, "r") as f:
-                self.data = json.load(f)
-
-    def save(self):
-        with open(self.data_path, "w") as f:
-            json.dump(self.data, f)

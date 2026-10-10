@@ -1,22 +1,16 @@
-import json
-
 from models.base import Base
 
 ITEMS = []
 
 class Items(Base):
     def __init__(self, root_path, is_debug=False):
-        self.data_path = root_path + "item.json"
-        self.load(is_debug)
+        Base.__init__(self, root_path + "item.json", ITEMS, is_debug)
 
     def get_items(self):
-        return self.data
+        return self.get_all()
 
     def get_item(self, item_id):
-        for x in self.data:
-            if x["id"] == item_id:
-                return x
-        return None
+        return self.get_by_id(item_id)
 
     def get_items_for_item_line(self, item_line_id):
         result = []
@@ -47,31 +41,10 @@ class Items(Base):
         return result
 
     def add_item(self, item):
-        item["created_at"] = self.get_timestamp()
-        item["updated_at"] = self.get_timestamp()
-        self.data.append(item)
+        self.add(item)
 
     def update_item(self, item_id, item):
-        item["updated_at"] = self.get_timestamp()
-        for i in range(len(self.data)):
-            if self.data[i]["id"] == item_id:
-                self.data[i] = item
-                break
+        self.update(item_id, item)
 
     def remove_item(self, item_id):
-        for x in self.data:
-            if x["id"] == item_id:
-                self.data.remove(x)
-
-    def load(self, is_debug):
-        if is_debug:
-            self.data = ITEMS
-        else:
-            f = open(self.data_path, "r")
-            self.data = json.load(f)
-            f.close()
-
-    def save(self):
-        f = open(self.data_path, "w")
-        json.dump(self.data, f)
-        f.close()
+        self.remove(item_id)
