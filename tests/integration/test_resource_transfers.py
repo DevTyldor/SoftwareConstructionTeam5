@@ -5,7 +5,7 @@ import requests
 @pytest.fixture
 def _data():
     return {
-        'url': 'http://localhost:3000/api/v1/',
+        'url': 'http://127.0.0.1:3000/api/v1/',
         'api_key': 'f4a5c6i7l8i9t0y1m2a3n4a5g6',
         'receiving_key': 'r2e4c6e8i0v3i5n7g9s',
     }
