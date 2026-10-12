@@ -1,4 +1,7 @@
 import json
+import os
+import threading
+
 from datetime import datetime, timezone
 
 class DataFileError(Exception):
@@ -10,6 +13,8 @@ class DataFileError(Exception):
         Exception.__init__(self, f"Could not {action} data file '{path}': {cause}")
 
 class Base:
+    _save_lock = threading.Lock()
+    
     def __init__(self, data_path, debug_data, is_debug=False):
         self.data_path = data_path
         self.debug_data = debug_data
@@ -35,15 +40,18 @@ class Base:
         self.data = data
 
     def save(self):
-        try:
-            content = json.dumps(self.data)
-        except (TypeError, ValueError) as e:
-            raise DataFileError(self.data_path, "serialise data for", e) from e
-        try:
-            with open(self.data_path, "w", encoding="utf-8") as f:
-                f.write(content)
-        except OSError as e:
-            raise DataFileError(self.data_path, "write", e) from e
+        with Base._save_lock:
+            tmp_path = self.data_path + ".tmp"
+            try:
+                # write everything to a temp file first
+                with open(tmp_path, "w", encoding="utf-8") as f:
+                    json.dump(self.data, f)
+                # now its either the old file or the new file so it gets replaced
+                os.replace(tmp_path, self.data_path)
+            except (OSError, TypeError, ValueError) as e:
+                if os.path.exists(tmp_path):
+                    os.remove(tmp_path)
+                raise DataFileError(self.data_path, "write", e) from e
 
     def get_all(self):
         return self.data
