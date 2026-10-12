@@ -1,5 +1,3 @@
-import json
-
 from models.base import Base
 from providers import data_provider
 
@@ -7,7 +5,7 @@ SHIPMENTS = []
 
 class Shipments(Base):
     def __init__(self, root_path, is_debug=False):
-        self.data_path = root_path + "shipment.json"
+        self.data_path = root_path + "....json"
         self.load(is_debug)
 
     def get_shipments(self):
@@ -100,14 +98,3 @@ class Shipments(Base):
         shipment = dict(shipment)
         shipment["items"] = self.get_items_in_shipment(shipment["id"])
         return shipment
-
-    def load(self, is_debug):
-        if is_debug:
-            self.data = SHIPMENTS
-        else:
-            with open(self.data_path, "r") as f:
-                self.data = json.load(f)
-
-    def save(self):
-        with open(self.data_path, "w") as f:
-            json.dump(self.data, f)

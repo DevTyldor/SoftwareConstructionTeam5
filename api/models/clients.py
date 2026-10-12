@@ -1,12 +1,10 @@
-import json
-
 from models.base import Base
 
 CLIENTS = []
 
 class Clients(Base):
     def __init__(self, root_path, is_debug=False):
-        self.data_path = root_path + "client.json"
+        self.data_path = root_path + "....json"
         self.load(is_debug)
 
     def get_clients(self):
@@ -34,16 +32,3 @@ class Clients(Base):
         for x in self.data:
             if x["id"] == client_id:
                 self.data.remove(x)
-
-    def load(self, is_debug):
-        if is_debug:
-            self.data = CLIENTS
-        else:
-            f = open(self.data_path, "r")
-            self.data = json.load(f)
-            f.close()
-
-    def save(self):
-        f = open(self.data_path, "w")
-        json.dump(self.data, f)
-        f.close()

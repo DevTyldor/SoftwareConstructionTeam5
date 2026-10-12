@@ -1,5 +1,3 @@
-import json
-
 from models.base import Base
 from providers import data_provider
 
@@ -7,7 +5,7 @@ TRANSFERS = []
 
 class Transfers(Base):
     def __init__(self, root_path, is_debug=False):
-        self.data_path = root_path + "transfer.json"
+        self.data_path = root_path + "....json"
         self.load(is_debug)
 
     def get_transfers(self):
@@ -55,14 +53,3 @@ class Transfers(Base):
         transfer = dict(transfer)
         transfer["items"] = self.get_items_in_transfer(transfer["id"])
         return transfer
-
-    def load(self, is_debug):
-        if is_debug:
-            self.data = TRANSFERS
-        else:
-            with open(self.data_path, "r") as f:
-                self.data = json.load(f)
-
-    def save(self):
-        with open(self.data_path, "w") as f:
-            json.dump(self.data, f)

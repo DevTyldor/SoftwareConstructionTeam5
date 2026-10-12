@@ -1,12 +1,10 @@
-import json
-
 from models.base import Base
 
 LOCATIONS = []
 
 class Locations(Base):
     def __init__(self, root_path, is_debug=False):
-        self.data_path = root_path + "location.json"
+        self.data_path = root_path + "....json"
         self.load(is_debug)
 
     def get_locations(self):
@@ -41,16 +39,3 @@ class Locations(Base):
         for x in self.data:
             if x["id"] == location_id:
                 self.data.remove(x)
-
-    def load(self, is_debug):
-        if is_debug:
-            self.data = LOCATIONS
-        else:
-            f = open(self.data_path, "r")
-            self.data = json.load(f)
-            f.close()
-
-    def save(self):
-        f = open(self.data_path, "w")
-        json.dump(self.data, f)
-        f.close()

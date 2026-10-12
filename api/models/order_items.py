@@ -1,10 +1,8 @@
-import json
-
 from models.base import Base
 
 class OrderItems(Base):
     def __init__(self, root_path, is_debug=False):
-        self.data_path = root_path + "order_item.json"
+        self.data_path = root_path + "....json"
         self.load(is_debug)
 
     def get_items_for_order(self, order_id):
@@ -34,14 +32,3 @@ class OrderItems(Base):
 
     def _next_id(self):
         return max((x["id"] for x in self.data), default=0)
-
-    def load(self, is_debug):
-        if is_debug:
-            self.data = []
-        else:
-            with open(self.data_path, "r") as f:
-                self.data = json.load(f)
-
-    def save(self):
-        with open(self.data_path, "w") as f:
-            json.dump(self.data, f)

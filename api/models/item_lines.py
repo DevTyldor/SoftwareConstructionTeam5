@@ -1,12 +1,10 @@
-import json
-
 from models.base import Base
 
 ITEM_LINES = []
 
 class ItemLines(Base):
     def __init__(self, root_path, is_debug=False):
-        self.data_path = root_path + "item_line.json"
+        self.data_path = root_path + "....json"
         self.load(is_debug)
 
     def get_item_lines(self):
@@ -34,16 +32,3 @@ class ItemLines(Base):
         for x in self.data:
             if x["id"] == item_line_id:
                 self.data.remove(x)
-
-    def load(self, is_debug):
-        if is_debug:
-            self.data = ITEM_LINES
-        else:
-            f = open(self.data_path, "r")
-            self.data = json.load(f)
-            f.close()
-
-    def save(self):
-        f = open(self.data_path, "w")
-        json.dump(self.data, f)
-        f.close()
