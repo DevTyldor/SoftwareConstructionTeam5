@@ -462,6 +462,17 @@ def test_POST_warehouse_creation_empty_body(_data):
     ), f"API returned wrong status code: {response.status_code}, should be 400"
 
 
+def test_PUT_warehouse_update_empty_body(_data):
+
+    url = _data["url"] + "warehouses/1"
+
+    response = requests.put(url, headers={"API_KEY": _data["api_key"]}, data="")
+
+    assert (
+        response.status_code == 400
+    ), f"API returned wrong status code: {response.status_code}, should be 400"
+
+
 def test_POST_warehouse_creation_wrong_json_type(_data):
 
     url = _data["url"] + "warehouses"
@@ -592,3 +603,15 @@ def test_GET_warehouse_invalid_path(_data):
     assert (
         response.status_code == 404
     ), f"API returned wrong status code: {response.status_code}, should be 404"
+
+
+def test_PATCH_orders_unsupported_method(_data):
+    response = requests.patch(
+        _data["url"] + "warehouses",
+        headers={"API_KEY": _data["api_key"]},
+    )
+
+    assert response.status_code in (
+        405,
+        501,
+    ), f"API returned wrong status code: {response.status_code}, should reject PATCH"

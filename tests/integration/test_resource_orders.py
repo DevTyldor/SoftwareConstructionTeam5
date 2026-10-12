@@ -461,6 +461,22 @@ def test_POST_order_creation_empty_body(_data):
     ), f"API returned wrong status code: {response.status_code}, should reject an empty body"
 
 
+def test_PUT_order_update_empty_body(_data):
+    response = requests.put(
+        _data["url"] + "orders/1",
+        headers={
+            "API_KEY": _data["api_key"],
+            "Content-Type": "application/json",
+        },
+        data="",
+    )
+
+    assert response.status_code in (
+        400,
+        422,
+    ), f"API returned wrong status code: {response.status_code}, should reject an empty body"
+
+
 def test_POST_order_creation_wrong_json_type(_data):
     response = requests.post(
         _data["url"] + "orders",

@@ -365,6 +365,17 @@ def test_POST_location_creation_empty_body(_data):
 
     assert response.status_code in (400, 422), f"API returned wrong status code: {response.status_code}, should be 400 or 422"
 
+def test_PUT_location_update_empty_body(_data):
+    url = _data["url"] + "locations/1"
+
+    response = requests.put(
+        url,
+        headers={"API_KEY": _data["api_key"]},
+        data="",
+    )
+
+    assert response.status_code in (400, 422), f"API returned wrong status code: {response.status_code}, should be 400 or 422"
+
 
 def test_POST_location_creation_wrong_json_type(_data):
     url = _data["url"] + "locations"
