@@ -4,11 +4,10 @@ INVENTORIES = []
 
 class Inventories(Base):
     def __init__(self, root_path, is_debug=False):
-        self.data_path = root_path + "....json"
-        self.load(is_debug)
+        Base.__init__(self, root_path + "inventory.json", INVENTORIES, is_debug)
 
     def get_inventories(self):
-        return self.data
+        return self.get_all()
 
     def get_inventory(self, item_id, location_id):
         for x in self.data:
@@ -41,12 +40,12 @@ class Inventories(Base):
     def add_inventory(self, inventory):
         # Composite key: upsert on (item_id, location_id).
         existing = self.get_inventory(inventory["item_id"], inventory["location_id"])
-        inventory["created_at"] = self.get_timestamp()
-        inventory["updated_at"] = self.get_timestamp()
         if existing is not None:
+            inventory["created_at"] = self.get_timestamp()
+            inventory["updated_at"] = self.get_timestamp()
             existing.update(inventory)
         else:
-            self.data.append(inventory)
+            self.add(inventory)
 
     def update_inventory(self, item_id, location_id, inventory):
         inventory["updated_at"] = self.get_timestamp()

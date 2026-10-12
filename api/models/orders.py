@@ -5,20 +5,19 @@ ORDERS = []
 
 class Orders(Base):
     def __init__(self, root_path, is_debug=False):
-        self.data_path = root_path + "....json"
-        self.load(is_debug)
+        Base.__init__(self, root_path + "order.json", ORDERS, is_debug)
 
     def get_orders(self):
         result = []
-        for x in self.data:
+        for x in self.get_all():
             result.append(self._with_items(x))
         return result
 
     def get_order(self, order_id):
-        for x in self.data:
-            if x["id"] == order_id:
-                return self._with_items(x)
-        return None
+        order = self.get_by_id(order_id)
+        if order is None:
+            return None
+        return self._with_items(order)
 
     def get_items_in_order(self, order_id):
         rows = data_provider.fetch_order_item_pool().get_items_for_order(order_id)
@@ -35,18 +34,12 @@ class Orders(Base):
 
     def add_order(self, order):
         items = order.pop("items", [])
-        order["created_at"] = self.get_timestamp()
-        order["updated_at"] = self.get_timestamp()
-        self.data.append(order)
+        self.add(order)
         data_provider.fetch_order_item_pool().set_items_for_order(order["id"], items)
 
     def update_order(self, order_id, order):
         items = order.pop("items", None)
-        order["updated_at"] = self.get_timestamp()
-        for i in range(len(self.data)):
-            if self.data[i]["id"] == order_id:
-                self.data[i] = order
-                break
+        self.update(order_id, order)
         if items is not None:
             self.update_items_in_order(order_id, items)
 
@@ -82,10 +75,7 @@ class Orders(Base):
         inventory_pool.update_inventory(item_id, target["location_id"], target)
 
     def remove_order(self, order_id):
-        for x in self.data:
-            if x["id"] == order_id:
-                self.data.remove(x)
-                break
+        self.remove(order_id)
         data_provider.fetch_order_item_pool().remove_items_for_order(order_id)
 
     def _with_items(self, order):

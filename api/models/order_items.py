@@ -2,8 +2,7 @@ from models.base import Base
 
 class OrderItems(Base):
     def __init__(self, root_path, is_debug=False):
-        self.data_path = root_path + "....json"
-        self.load(is_debug)
+        Base.__init__(self, root_path + "order_item.json", [], is_debug)
 
     def get_items_for_order(self, order_id):
         result = []

@@ -4,8 +4,7 @@ class TransferItems(Base):
     """Rows of the `transfer_item` table (id, transfer_id, item_id, amount)."""
 
     def __init__(self, root_path, is_debug=False):
-        self.data_path = root_path + "....json"
-        self.load(is_debug)
+        Base.__init__(self, root_path + "transfer_item.json", [], is_debug)
 
     def get_items_for_transfer(self, transfer_id):
         result = []
