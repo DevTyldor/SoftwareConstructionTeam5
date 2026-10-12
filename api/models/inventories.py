@@ -1,16 +1,13 @@
-import json
-
 from models.base import Base
 
 INVENTORIES = []
 
 class Inventories(Base):
     def __init__(self, root_path, is_debug=False):
-        self.data_path = root_path + "inventory.json"
-        self.load(is_debug)
+        Base.__init__(self, root_path + "inventory.json", INVENTORIES, is_debug)
 
     def get_inventories(self):
-        return self.data
+        return self.get_all()
 
     def get_inventory(self, item_id, location_id):
         for x in self.data:
@@ -43,12 +40,12 @@ class Inventories(Base):
     def add_inventory(self, inventory):
         # Composite key: upsert on (item_id, location_id).
         existing = self.get_inventory(inventory["item_id"], inventory["location_id"])
-        inventory["created_at"] = self.get_timestamp()
-        inventory["updated_at"] = self.get_timestamp()
         if existing is not None:
+            inventory["created_at"] = self.get_timestamp()
+            inventory["updated_at"] = self.get_timestamp()
             existing.update(inventory)
         else:
-            self.data.append(inventory)
+            self.add(inventory)
 
     def update_inventory(self, item_id, location_id, inventory):
         inventory["updated_at"] = self.get_timestamp()
@@ -63,14 +60,3 @@ class Inventories(Base):
             x for x in self.data
             if not (x["item_id"] == item_id and x["location_id"] == location_id)
         ]
-
-    def load(self, is_debug):
-        if is_debug:
-            self.data = INVENTORIES
-        else:
-            with open(self.data_path, "r") as f:
-                self.data = json.load(f)
-
-    def save(self):
-        with open(self.data_path, "w") as f:
-            json.dump(self.data, f)
