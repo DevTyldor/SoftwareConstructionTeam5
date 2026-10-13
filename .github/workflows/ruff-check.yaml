@@ -48,5 +48,32 @@ jobs:
 #Make the reports become inline annotations in the pull request
 #Format warnings to become yellow warnings instead of red
 #Emits errors
-      - name: Run ruff check (inline warnings)
+      - name: Run ruff check (inline warnings and pull request comment)
         run: ruff check . --output-format=github | sed 's/^::error/::warning/' || true
+      
+#Check if file is created and if checks are passed first
+
+      - name: Build ruff report
+        run: |
+          ruff check . --output-format=concise > ruff-report.txt || true
+          if [ ! -s ruff-raw.txt ]; then
+            #check if file exists or is empty
+            echo "###All ruff checks passed; No recommendations." > ruff-comment.md
+          elif grep -q "All checks passed" ruff-raw.txt; then
+            #check ruff report for all checks passed
+            echo "###All ruff checks passed; No recommendations." > ruff-comment.md
+          else
+            {
+              echo "###Ruff recommendation"
+              echo "---/t---"
+              cat ruff-raw.txt
+            } > ruff-comment.md
+          fi
+
+      - name: Comment ruff on PR
+        if: github.event.pull_request.head.repo.full_name == github.repository
+        continue-on-error: true
+        uses: thollander/actions-comment-pull-request@v3
+        with:
+          file-path: ruff-comment.md
+          comment-tag: ruff-report
