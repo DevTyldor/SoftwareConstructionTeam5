@@ -1,0 +1,52 @@
+#Workflow to do a ruff check on the codebase to identify any issues
+#If bugs get found, stop execution of testing and report the issues to the user. 
+#This is a quick check to identify any issues with the codebase before running the full test suite.
+#Tiggers on
+# pull requests to the dev branch
+name: Ruff(Rough) Check
+on:
+  pull_request:
+    branches: [ "dev" ]
+
+#Check if there is a new commit on the dev branch and run the tests on it.
+#This also cancels olders job, so the tests are only run on the latest commit.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true 
+
+#Set permissions
+# Read: Allows the workflow to read the contents of the repository, including code, issues, and pull requests.
+# Write: Allows the workflow to recomment fixes to pull requests.
+permissions:
+  contents: read
+  pull-requests: write
+
+#Ruff job: check codebase to be merged into dev branch for any issues.
+#Report issues as comments to pull request.
+jobs:
+  ruff-check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 4
+#Makes it always report green so this workflow is treated as advisory
+#So merged are not blocked
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+#Set up Python environment for the ruff check, including the specified Python version and caching pip dependencies.
+      - name: Set up Python "3.12"
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+#Install ruff-package (to check codebase)
+      - name: Install ruff
+        run: pip install ruff
+
+#Run ruff check
+#Make the reports become inline annotations in the pull request
+#Format warnings to become yellow warnings instead of red
+#Emits errors
+      - name: Run ruff check (inline warnings)
+        run: ruff check . --output-format=github | sed 's/^::error/::warning/' || true

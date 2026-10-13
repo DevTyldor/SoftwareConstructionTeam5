@@ -27,7 +27,7 @@ env:
 #Run quick ruff check to identify any issues with the codebase before running the full test suite.
 jobs:
   lint:
-    name: Fast checks, Early Fails/Feedback
+    name: Integration Tests
     runs-on: ubuntu-latest
     timeout-minutes: 4
     steps:
