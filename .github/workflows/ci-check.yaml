@@ -67,13 +67,13 @@ jobs:
           python-version: ${{env.PYTHON_VERSION}}
       - run: pip install -r requirements.txt
 #4. Start the API server in the background and check every second for 5 seconds
-#   if the server has started successfully by checking the server log for any errors.
+#   if the server has started successfully by curling API.
       - name: Start API server
         run: |
           nohup python api/main.py > server.log 2>&1 &
           for seconds in {1..15}; do
 
-          STATUS=$(curl -s -o response.txt -w "%{http_code}" -H "API_KEY: $API_KEY" http://localhost:3000/api/v1/clients/1 || true)
+          STATUS=$(curl -s -o response.txt -w "%{http_code}" -H "API_KEY: $API_KEY" ${{env.API_BASE_URL}}/v1/clients/1 || true)
 
           if [ "$STATUS" = 200 ]; then
             echo "Data loaded in succesfull"
@@ -90,15 +90,63 @@ jobs:
       - name : Run integration tests
         env:
           TEST_PATH: ${{ inputs.test_path || 'tests/integration' }}
-        run: pytest -q "$TEST_PATH" -v -rA --junitxml=integration_test_results.xml --disable-warnings
-#7 Upload the JUnit XML report to GitHub Actions for easy viewing of test results.
+        run: pytest "$TEST_PATH" -v -rA --junitxml=integration-testresults.xml --disable-warnings | tee pytest-output.txt
+#6. Filter results and add to respective passed and fail files
+#   Passed: passed-tests.md
+#   Failed: failed-tests.md
+      - name: Filter and build test results
+        if: always()
+        run: |
+          touch pytest-output.txt
+          PASSED=(grep -cE '^PASSED ' pytest-output.txt || true)
+          FAILED=(grep -cE '^(FAILED|ERROR) ' pytest-output.txt || true)
+          {
+            echo "### Failed tests"
+            echo '---\tStart\t---'
+            if [ -n "$FAILED" ]:then
+              printf '%s\n "$FAILED"'
+            else
+              echo "No failed tests."
+            fi
+            echo '---\tEND\t---'
+          } > failed-tests.md
+          {
+            echo "### Passed tests "
+            echo '---\tStart\t---'
+            if [ -n "$PASSED" ]:then
+              printf '%s\n "$PASSED"'
+            else
+              echo "No passed tests."
+            fi
+            echo '---\tEND\t---'
+          } > passed-tests.md
+#7. Add the test results as comments
+      - name: Comment PASSED results on PR
+        if: github.event.pull_request.head.repo.full_name == github.repository
+        continue-on-error: true
+        uses: thollander/actions-comment-pull-request@v3
+        with:
+          file-path: passed-tests.md
+          comment-tag: passed-tests
+      
+      - name: Comment FAILED results on PR
+        if: github.event.pull_request.head.repo.full_name == github.repository
+        continue-on-error: true
+        uses: thollander/actions-comment-pull-request@v3
+        with:
+          file-path: failed-tests.md
+          comment-tag: failed-tests
+#8. Upload the JUnit XML report to GitHub Actions for easy viewing of test results.
       - name: Upload test results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: integration-test-results
-          path: integration_test_results.xml
-#8. Show server log on failure
+          path: |
+            integration-testresults.xml
+            passed-tests.md
+            failed-tests.md
+#Failed run: Show server log on failure
       - name: Show server log on failure
         if: failure()
         run: cat server.log
