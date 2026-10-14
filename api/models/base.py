@@ -1,12 +1,24 @@
 import json
+import os
+import threading
+
 from datetime import datetime, timezone
 
+class DataFileError(Exception):
+    """Exception class for error throwing"""
+    
+    def __init__(self, path, action, cause):
+        self.path = path
+        self.cause = cause
+        Exception.__init__(self, f"Could not {action} data file '{path}': {cause}")
+
 class Base:
+    _save_lock = threading.Lock()
+    
     def __init__(self, data_path, debug_data, is_debug=False):
         self.data_path = data_path
         self.debug_data = debug_data
         self.load(is_debug)
-
     def get_timestamp(self):
         # https://stackoverflow.com/a/10944136
         # https://stackoverflow.com/a/30724660
@@ -15,13 +27,31 @@ class Base:
     def load(self, is_debug):
         if is_debug:
             self.data = self.debug_data
-        else:
-            with open(self.data_path, "r") as f:
-                self.data = json.load(f)
+            return
+        try:
+            with open(self.data_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+        except OSError as e:          # missing file or no permission
+            raise DataFileError(self.data_path, "read", e) from e
+        except ValueError as e:       # broken JSON
+            raise DataFileError(self.data_path, "parse", e) from e
+        if not isinstance(data, list): # not a list
+            raise DataFileError(self.data_path, "load", "expected a JSON list")
+        self.data = data
 
     def save(self):
-        with open(self.data_path, "w") as f:
-            json.dump(self.data, f)
+        with Base._save_lock:
+            tmp_path = self.data_path + ".tmp"
+            try:
+                # write everything to a temp file first
+                with open(tmp_path, "w", encoding="utf-8") as f:
+                    json.dump(self.data, f)
+                # now its either the old file or the new file so it gets replaced
+                os.replace(tmp_path, self.data_path)
+            except (OSError, TypeError, ValueError) as e:
+                if os.path.exists(tmp_path):
+                    os.remove(tmp_path)
+                raise DataFileError(self.data_path, "write", e) from e
 
     def get_all(self):
         return self.data
@@ -48,3 +78,4 @@ class Base:
         for x in self.data:
             if x["id"] == id:
                 self.data.remove(x)
+                
