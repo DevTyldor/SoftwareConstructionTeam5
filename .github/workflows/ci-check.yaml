@@ -98,8 +98,8 @@ jobs:
         if: always()
         run: |
           touch pytest-output.txt
-          PASSED=(grep -cE '^PASSED' pytest-output.txt; true)
-          FAILED=(grep -cE '^(FAILED|ERROR)' pytest-output.txt; true)
+          PASSED=(grep -cE '^PASSED' pytest-output.txt)
+          FAILED=(grep -cE '^(FAILED|ERROR)' pytest-output.txt)
           {
             echo "### Failed tests"
             echo '---\tStart\t---'
