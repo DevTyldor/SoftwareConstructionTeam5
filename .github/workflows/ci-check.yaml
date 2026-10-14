@@ -51,6 +51,7 @@ jobs:
           repository: nsamijo/data
           token: ${{ secrets.TEST_DATA_REPO_TOKEN }}
           path: private-testdata
+      - name: Move loaded testdata into data folder
         run: |
           mkdir -p data
           cp private-testdata/data/*.json data/
