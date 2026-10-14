@@ -55,7 +55,7 @@ jobs:
 
       - name: Build ruff report
         run: |
-          ruff check . --output-format=git > ruff-report.txt || true
+          ruff check . --output-format=github > ruff-report.txt || true
 
           if [ ! -s ruff-report.txt ]; then
             #check if file exists or is empty
