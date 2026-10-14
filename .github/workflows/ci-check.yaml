@@ -58,9 +58,9 @@ jobs:
           cache: "pip"
 #3. Install dependencies from requirements.txt file.
       - name: Install dependancies
-        uses: actions/python@v5
+        uses: actions/setup-python@v7
         with:
-          python-version: ${{ env.PYTHON_VERSION }}
+          python-version: "3.12"
       - run: pip install -r requirements.txt
 #4. Start the API server in the background and check every second for 5 seconds
 #   if the server has started successfully by checking the server log for any errors.
