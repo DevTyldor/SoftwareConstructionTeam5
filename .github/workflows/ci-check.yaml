@@ -74,7 +74,7 @@ jobs:
         run: |
           nohup python api/main.py > server.log 2>&1 &
           for seconds in {1..15}; do
-          STATUS=$(curl -s -o response.txt -w "%{http_code}" -H "API_KEY: $API_KEY" http://localhost:3000/clients/1 || true)
+          STATUS=$(curl -s -o response.txt -w "%{http_code}" -H "API_KEY: $API_KEY" http://localhost:3000/api/v1/clients/1 || true)
             if curl -sf -o /dev/null -H "API_KEY:$API_KEY" http:localhost:3000/api/v1/clients/1; then
               echo "Data loaded in succesfull"
               echo "Server is up"
