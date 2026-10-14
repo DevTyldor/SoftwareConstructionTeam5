@@ -55,17 +55,17 @@ jobs:
 
       - name: Build ruff report
         run: |
-          ruff check . --output-format=concise > ruff-report.txt || true
-          if [ ! -s ruff-raw.txt ]; then
+          ruff check . --output-format=git > ruff-report.txt || true
+
+          if [ ! -s ruff-report.txt ]; then
             #check if file exists or is empty
             echo "### All ruff checks passed; No recommendations." > ruff-comment.md
-          elif grep -q "All checks passed" ruff-raw.txt; then
+          elif grep -q "All checks passed" ruff-report.txt; then
             #check ruff report for all checks passed
             echo "### All ruff checks passed; No recommendations." > ruff-comment.md
           else
             {
               echo "### Ruff recommendation"
-              echo "---/t---"
               cat ruff-raw.txt
             } > ruff-comment.md
           fi
