@@ -154,7 +154,7 @@ def new_client(_data):
 
     def factory(create=True, **overrides):
         client = {
-            "id": 900000 + uuid.uuid4().int % 90000,
+            "id": 900000,
             "name": "Test Client",
             "address": "Laan van Mathenesse 9a",
             "city": "Utrecht",
