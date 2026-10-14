@@ -98,27 +98,28 @@ jobs:
         if: always()
         run: |
           touch pytest-output.txt
-          PASSED=(grep -cE '^PASSED' pytest-output.txt)
-          FAILED=(grep -cE '^(FAILED|ERROR)' pytest-output.txt)
+          PASSED=$(grep -E '^PASSED' pytest-output.txt; true)
+          FAILED=$(grep -E '^(FAILED|ERROR)' pytest-output.txt; true)
           {
             echo "### Failed tests"
-            echo '---\tStart\t---'
+            echo '```Start```'
             if [ -n "$FAILED" ]:then
-              printf '%s\n "$FAILED"'
+              printf '%s\n' "$FAILED"
             else
               echo "No failed tests."
             fi
-            echo '---\tEND\t---'
+            echo '```END```'
           } > failed-tests.md
+
           {
             echo "### Passed tests "
-            echo '---\tStart\t---'
+            echo '```Start```'
             if [ -n "$PASSED" ]:then
-              printf '%s\n "$PASSED"'
+              printf '%s\n' "$PASSED"
             else
               echo "No passed tests."
             fi
-            echo '---\tEND\t---'
+            echo '```END```'
           } > passed-tests.md
 #7. Add the test results as comments
       - name: Comment PASSED results on PR
