@@ -19,6 +19,13 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+#Set permissions
+# Read: Allows the workflow to read the contents of the repository
+# Write: Allows the workflow to comment test results to pull requests.
+permissions:
+  contents: read
+  pull-requests: write
+
 #Setup environment variables for the workflow, including 
 #the API key 
 #and Python version.
