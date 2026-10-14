@@ -44,12 +44,17 @@ jobs:
         uses: actions/checkout@v4
 
 #1. Checkout testdata in private repo
+#   Move data to correct folder
       - name: Checkout testdata (private repo)
         uses: actions/checkout@v4
         with:
           repository: nsamijo/data
           token: ${{ secrets.TEST_DATA_REPO_TOKEN }}
-          path: ${{ github.workspace }}/data
+          path: private-testdata
+        run: |
+          mkdir -p data
+          cp private-testdata/data/*.json data/
+          echo "Test data loaded in succesfully"
 #2. Setup Python environment with correct version.
       - name: Set up Python 3.12
         uses: actions/setup-python@v5
