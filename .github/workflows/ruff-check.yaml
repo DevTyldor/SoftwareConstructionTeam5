@@ -66,7 +66,7 @@ jobs:
           else
             {
               echo "### Ruff recommendation"
-              cat ruff-raw.txt
+              cat ruff-report.txt
             } > ruff-comment.md
           fi
 
