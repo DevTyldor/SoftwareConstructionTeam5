@@ -30,3 +30,4 @@ data/
 
 # manual tests
 requests.rest
+tests/integration/temp.py
