@@ -107,11 +107,14 @@ jobs:
           touch pytest-output.txt
           PASSED=$(grep -E '^PASSED' pytest-output.txt; true)
           FAILED=$(grep -E '^(FAILED|ERROR)' pytest-output.txt; true)
+          PASSED_COUNT=$(grep -cE '^PASSED' pytest-output.txt; true)
+          FAILED_COUNT=$(grep -cE '^(FAILED|ERROR)' pytest-output.txt; true)
+          TOTAL=$((PASSED_COUNT + FAILED_COUNT))
           {
-            echo "### Failed tests"
+            echo "### Failed tests ($FAILED_COUNT of $TOTAL)"
             echo '```Start```'
             if [ -n "$FAILED" ]; then
-              printf '%s\n' "$\color{#FF0000}{$FAILED}$"
+              printf '%s\n' "$FAILED"
             else
               echo "No failed tests."
             fi
@@ -119,7 +122,7 @@ jobs:
           } > failed-tests.md
 
           {
-            echo "### Passed tests "
+            echo "### Passed tests ($PASSED_COUNT of $TOTAL)"
             echo '```Start```'
             if [ -n "$PASSED" ]; then
               printf '%s\n' "$PASSED"
