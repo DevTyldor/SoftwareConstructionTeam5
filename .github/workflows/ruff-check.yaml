@@ -77,3 +77,10 @@ jobs:
         with:
           file-path: ruff-comment.md
           comment-tag: ruff-report
+
+      - name: Upload ruff report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: ruff-results
+          path: ruff-comment.md
