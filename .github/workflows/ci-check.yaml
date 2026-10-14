@@ -33,7 +33,7 @@ jobs:
     timeout-minutes: 4
 #Setup environment variables for the integration tests, including the API key and base URL for the API.
     env:
-      API_BASE_URL: "http://localhost:3000"
+      API_BASE_URL: "http://localhost:3000/api/v1"
       TESTDATA_DIR: ${{ github.workspace }}/data
 
 #Run the full test suite to ensure that the codebase is functioning correctly.
@@ -73,7 +73,7 @@ jobs:
           nohup python api/main.py > server.log 2>&1 &
           for seconds in {1..15}; do
 
-          STATUS=$(curl -s -o response.txt -w "%{http_code}" -H "API_KEY: $API_KEY" ${{env.API_BASE_URL}}/v1/clients/1 || true)
+          STATUS=$(curl -s -o response.txt -w "%{http_code}" -H "API_KEY: $API_KEY" ${{env.API_BASE_URL}}/clients/1 || true)
 
           if [ "$STATUS" = 200 ]; then
             echo "Data loaded in succesfull"
