@@ -201,7 +201,7 @@ def new_supplier(_data):
 
     def factory(create=True, **overrides):
         supplier = {
-            "id": 900000 + uuid.uuid4().int % 90000,
+            "id": 900000,
             "name": "Test Supplier",
             "address": "Laan van Mathenesse 9a",
             "city": "Utrecht",
