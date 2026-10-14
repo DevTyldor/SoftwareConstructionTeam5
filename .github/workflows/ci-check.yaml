@@ -80,7 +80,7 @@ jobs:
               exit 0
             fi
             sleep 1
-            echo curl -sf -o /dev/null -H "API_KEY:${{secrets.API_KEY }}" http:localhost:3000/api/v1/clients/1
+            curl -sf -o /dev/null -H "API_KEY:${{secrets.API_KEY }}" http:localhost:3000/api/v1/clients/1 >> echo
           done
           echo "Server failed to start. Check server.log for details."
           echo "--- data folder ---"
