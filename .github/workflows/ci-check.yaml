@@ -111,7 +111,7 @@ jobs:
             echo "### Failed tests"
             echo '```Start```'
             if [ -n "$FAILED" ]; then
-              printf '%s\n' "$FAILED"
+              printf '%s\n' "$\color{#FF0000}{$FAILED}$""
             else
               echo "No failed tests."
             fi
