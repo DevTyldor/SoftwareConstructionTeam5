@@ -103,7 +103,7 @@ jobs:
           {
             echo "### Failed tests"
             echo '```Start```'
-            if [ -n "$FAILED" ]:then
+            if [ -n "$FAILED" ]; then
               printf '%s\n' "$FAILED"
             else
               echo "No failed tests."
@@ -114,7 +114,7 @@ jobs:
           {
             echo "### Passed tests "
             echo '```Start```'
-            if [ -n "$PASSED" ]:then
+            if [ -n "$PASSED" ]; then
               printf '%s\n' "$PASSED"
             else
               echo "No passed tests."
