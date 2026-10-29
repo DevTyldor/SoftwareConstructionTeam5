@@ -6,55 +6,41 @@ from urllib.parse import urlparse
 from processors import notification_processor
 from providers import auth_provider
 
-from api import (
-    handle_get_warehouses,
-    handle_get_locations,
-    handle_get_transfers,
-    handle_get_items,
-    handle_get_item_lines,
-    handle_get_item_groups,
-    handle_get_item_types,
-    handle_get_inventories,
-    handle_get_suppliers,
-    handle_get_orders,
-    handle_get_clients,
-    handle_get_shipments,
-    handle_post_warehouses,
-    handle_post_locations,
-    handle_post_transfers,
-    handle_post_items,
-    handle_post_item_lines,
-    handle_post_item_groups,
-    handle_post_item_types,
-    handle_post_inventories,
-    handle_post_suppliers,
-    handle_post_orders,
-    handle_post_clients,
-    handle_post_shipments,
-    handle_put_warehouses,
-    handle_put_locations,
-    handle_put_transfers,
-    handle_put_items,
-    handle_put_item_lines,
-    handle_put_item_groups,
-    handle_put_item_types,
-    handle_put_inventories,
-    handle_put_suppliers,
-    handle_put_orders,
-    handle_put_clients,
-    handle_put_shipments,
-    handle_delete_warehouses,
-    handle_delete_locations,
-    handle_delete_transfers,
-    handle_delete_items,
-    handle_delete_item_lines,
-    handle_delete_item_groups,
-    handle_delete_item_types,
-    handle_delete_inventories,
-    handle_delete_suppliers,
-    handle_delete_orders,
-    handle_delete_clients,
-    handle_delete_shipments,
+from endpoints.warehouses import (
+    handle_get_warehouses, handle_post_warehouses, handle_put_warehouses, handle_delete_warehouses,
+)
+from endpoints.locations import (
+    handle_get_locations, handle_post_locations, handle_put_locations, handle_delete_locations,
+)
+from endpoints.transfers import (
+    handle_get_transfers, handle_post_transfers, handle_put_transfers, handle_delete_transfers,
+)
+from endpoints.items import (
+    handle_get_items, handle_post_items, handle_put_items, handle_delete_items,
+)
+from endpoints.item_lines import (
+    handle_get_item_lines, handle_post_item_lines, handle_put_item_lines, handle_delete_item_lines,
+)
+from endpoints.item_groups import (
+    handle_get_item_groups, handle_post_item_groups, handle_put_item_groups, handle_delete_item_groups,
+)
+from endpoints.item_types import (
+    handle_get_item_types, handle_post_item_types, handle_put_item_types, handle_delete_item_types,
+)
+from endpoints.inventories import (
+    handle_get_inventories, handle_post_inventories, handle_put_inventories, handle_delete_inventories,
+)
+from endpoints.suppliers import (
+    handle_get_suppliers, handle_post_suppliers, handle_put_suppliers, handle_delete_suppliers,
+)
+from endpoints.orders import (
+    handle_get_orders, handle_post_orders, handle_put_orders, handle_delete_orders,
+)
+from endpoints.clients import (
+    handle_get_clients, handle_post_clients, handle_put_clients, handle_delete_clients,
+)
+from endpoints.shipments import (
+    handle_get_shipments, handle_post_shipments, handle_put_shipments, handle_delete_shipments,
 )
 
 
