@@ -1,45 +1,8 @@
-import json
 import http.server
 from urllib.parse import urlparse
 
 from providers import auth_provider
-
-from endpoints.warehouses import (
-    handle_get_warehouses, handle_post_warehouses, handle_put_warehouses, handle_delete_warehouses,
-)
-from endpoints.locations import (
-    handle_get_locations, handle_post_locations, handle_put_locations, handle_delete_locations,
-)
-from endpoints.transfers import (
-    handle_get_transfers, handle_post_transfers, handle_put_transfers, handle_delete_transfers,
-)
-from endpoints.items import (
-    handle_get_items, handle_post_items, handle_put_items, handle_delete_items,
-)
-from endpoints.item_lines import (
-    handle_get_item_lines, handle_post_item_lines, handle_put_item_lines, handle_delete_item_lines,
-)
-from endpoints.item_groups import (
-    handle_get_item_groups, handle_post_item_groups, handle_put_item_groups, handle_delete_item_groups,
-)
-from endpoints.item_types import (
-    handle_get_item_types, handle_post_item_types, handle_put_item_types, handle_delete_item_types,
-)
-from endpoints.inventories import (
-    handle_get_inventories, handle_post_inventories, handle_put_inventories, handle_delete_inventories,
-)
-from endpoints.suppliers import (
-    handle_get_suppliers, handle_post_suppliers, handle_put_suppliers, handle_delete_suppliers,
-)
-from endpoints.orders import (
-    handle_get_orders, handle_post_orders, handle_put_orders, handle_delete_orders,
-)
-from endpoints.clients import (
-    handle_get_clients, handle_post_clients, handle_put_clients, handle_delete_clients,
-)
-from endpoints.shipments import (
-    handle_get_shipments, handle_post_shipments, handle_put_shipments, handle_delete_shipments,
-)
+from routes import app
 
 
 class RequestHandler(http.server.BaseHTTPRequestHandler):
@@ -63,23 +26,13 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
 
         return parsed_id
 
-    # ID conversion helper to remove duplicated logic
-    def call_with_id(self, handler, user, raw_id, argument_name, **kwargs):
-        resource_id = self.get_id(raw_id)
-
-        if resource_id is None:
-            return
-
-        kwargs[argument_name] = resource_id
-        handler(self, user, **kwargs)
-
     # error status helper to remove duplicated logic
     def error_status(self, status):
         self.send_response(status)
         self.end_headers()
 
     # ROUTING
-    # This large function routes each request to the right handler from api.py
+    # Looks up the route for this request in the route table and calls its handler
     def route_request(self, method):
         paths = [path for path in urlparse(self.path).path.split("/") if path]
 
@@ -90,11 +43,6 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
 
         # Remove /api/v1/ from the path
         paths = paths[2:]
-
-        # No resource specified
-        if not paths:
-            self.error_status(404)
-            return
 
         user = self.get_user()
 
@@ -108,477 +56,32 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
             self.error_status(401)
             return
 
-
-        # ============================================================
-        # GET
-        # ============================================================
-
-        if method == "GET":
-
-            if paths[0] == "warehouses":
-                if len(paths) == 1:
-                    handle_get_warehouses(self, user)
-
-                elif len(paths) == 2:
-                    self.call_with_id(
-                        handle_get_warehouses,
-                        user,
-                        paths[1],
-                        "warehouse_id",
-                    )
-
-                elif len(paths) == 3 and paths[2] == "locations":
-                    self.call_with_id(
-                        handle_get_warehouses,
-                        user,
-                        paths[1],
-                        "warehouse_id",
-                        locations=True,
-                    )
-
-                else:
-                    self.error_status(404)
-
-            elif paths[0] == "locations":
-                if len(paths) == 1:
-                    handle_get_locations(self, user)
-
-                elif len(paths) == 2:
-                    self.call_with_id(
-                        handle_get_locations,
-                        user,
-                        paths[1],
-                        "location_id",
-                    )
-
-                else:
-                    self.error_status(404)
-
-            elif paths[0] == "transfers":
-                if len(paths) == 1:
-                    handle_get_transfers(self, user)
-
-                elif len(paths) == 2:
-                    self.call_with_id(
-                        handle_get_transfers,
-                        user,
-                        paths[1],
-                        "transfer_id",
-                    )
-
-                elif len(paths) == 3 and paths[2] == "items":
-                    self.call_with_id(
-                        handle_get_transfers,
-                        user,
-                        paths[1],
-                        "transfer_id",
-                        get_items=True,
-                    )
-
-                else:
-                    self.error_status(404)
-
-            elif paths[0] == "items":
-                if len(paths) == 1:
-                    handle_get_items(self, user)
-
-                elif len(paths) == 2:
-                    self.call_with_id(
-                        handle_get_items,
-                        user,
-                        paths[1],
-                        "item_id",
-                    )
-
-                elif len(paths) == 3 and paths[2] == "inventory":
-                    self.call_with_id(
-                        handle_get_items,
-                        user,
-                        paths[1],
-                        "item_id",
-                        get_inventory=True,
-                    )
-
-                elif (
-                    len(paths) == 4 and paths[2] == "inventory" and paths[3] == "totals"
-                ):
-                    self.call_with_id(
-                        handle_get_items,
-                        user,
-                        paths[1],
-                        "item_id",
-                        get_totals=True,
-                    )
-
-                else:
-                    self.error_status(404)
-
-            elif paths[0] == "item_lines":
-                if len(paths) == 1:
-                    handle_get_item_lines(self, user)
-
-                elif len(paths) == 2:
-                    self.call_with_id(
-                        handle_get_item_lines,
-                        user,
-                        paths[1],
-                        "item_line_id",
-                    )
-
-                elif len(paths) == 3 and paths[2] == "items":
-                    self.call_with_id(
-                        handle_get_item_lines,
-                        user,
-                        paths[1],
-                        "item_line_id",
-                        get_items=True,
-                    )
-
-                else:
-                    self.error_status(404)
-
-            elif paths[0] == "item_groups":
-                if len(paths) == 1:
-                    handle_get_item_groups(self, user)
-
-                elif len(paths) == 2:
-                    self.call_with_id(
-                        handle_get_item_groups,
-                        user,
-                        paths[1],
-                        "item_group_id",
-                    )
-
-                elif len(paths) == 3 and paths[2] == "items":
-                    self.call_with_id(
-                        handle_get_item_groups,
-                        user,
-                        paths[1],
-                        "item_group_id",
-                        get_items=True,
-                    )
-
-                else:
-                    self.error_status(404)
-
-            elif paths[0] == "item_types":
-                if len(paths) == 1:
-                    handle_get_item_types(self, user)
-
-                elif len(paths) == 2:
-                    self.call_with_id(
-                        handle_get_item_types,
-                        user,
-                        paths[1],
-                        "item_type_id",
-                    )
-
-                elif len(paths) == 3 and paths[2] == "items":
-                    self.call_with_id(
-                        handle_get_item_types,
-                        user,
-                        paths[1],
-                        "item_type_id",
-                        get_items=True,
-                    )
-
-                else:
-                    self.error_status(404)
-
-            elif paths[0] == "inventories":
-                if len(paths) == 1:
-                    handle_get_inventories(self, user)
-
-                else:
-                    self.error_status(404)
-
-            elif paths[0] == "suppliers":
-                if len(paths) == 1:
-                    handle_get_suppliers(self, user)
-
-                elif len(paths) == 2:
-                    self.call_with_id(
-                        handle_get_suppliers,
-                        user,
-                        paths[1],
-                        "supplier_id",
-                    )
-
-                elif len(paths) == 3 and paths[2] == "items":
-                    self.call_with_id(
-                        handle_get_suppliers,
-                        user,
-                        paths[1],
-                        "supplier_id",
-                        get_items=True,
-                    )
-
-                else:
-                    self.error_status(404)
-
-            elif paths[0] == "orders":
-                if len(paths) == 1:
-                    handle_get_orders(self, user)
-
-                elif len(paths) == 2:
-                    self.call_with_id(
-                        handle_get_orders,
-                        user,
-                        paths[1],
-                        "order_id",
-                    )
-
-                elif len(paths) == 3 and paths[2] == "items":
-                    self.call_with_id(
-                        handle_get_orders,
-                        user,
-                        paths[1],
-                        "order_id",
-                        get_items=True,
-                    )
-
-                else:
-                    self.error_status(404)
-
-            elif paths[0] == "clients":
-                if len(paths) == 1:
-                    handle_get_clients(self, user)
-
-                elif len(paths) == 2:
-                    self.call_with_id(
-                        handle_get_clients,
-                        user,
-                        paths[1],
-                        "client_id",
-                    )
-
-                elif len(paths) == 3 and paths[2] == "orders":
-                    self.call_with_id(
-                        handle_get_clients,
-                        user,
-                        paths[1],
-                        "client_id",
-                        get_orders=True,
-                    )
-
-                else:
-                    self.error_status(404)
-
-            elif paths[0] == "shipments":
-                if len(paths) == 1:
-                    handle_get_shipments(self, user)
-
-                elif len(paths) == 2:
-                    self.call_with_id(
-                        handle_get_shipments,
-                        user,
-                        paths[1],
-                        "shipment_id",
-                    )
-
-                elif len(paths) == 3 and paths[2] == "orders":
-                    self.call_with_id(
-                        handle_get_shipments,
-                        user,
-                        paths[1],
-                        "shipment_id",
-                        get_orders=True,
-                    )
-
-                elif len(paths) == 3 and paths[2] == "items":
-                    self.call_with_id(
-                        handle_get_shipments,
-                        user,
-                        paths[1],
-                        "shipment_id",
-                        get_items=True,
-                    )
-
-                else:
-                    self.error_status(404)
-
-            else:
-                self.error_status(404)
-
-        # ============================================================
-        # POST
-        # ============================================================
-
-        elif method == "POST":
-
-            if len(paths) != 1:
-                self.error_status(404)
+        # PUT and DELETE check the ID before the url (same order as the old if/elif code)
+        if (method == "PUT" and len(paths) >= 2) or (method == "DELETE" and len(paths) == 2):
+            if self.get_id(paths[1]) is None:
                 return
 
-            if paths[0] == "warehouses":
-                handle_post_warehouses(self, user)
+        match = app.find_route(method, paths)
+        
+        match = app.find_route(method, paths)
 
-            elif paths[0] == "locations":
-                handle_post_locations(self, user)
+        # Unknown url, or this method is not allowed on it: 404
+        if match is None:
+            self.error_status(404)
+            return
 
-            elif paths[0] == "transfers":
-                handle_post_transfers(self, user)
+        route, params = match
 
-            elif paths[0] == "items":
-                handle_post_items(self, user)
-
-            elif paths[0] == "item_lines":
-                handle_post_item_lines(self, user)
-
-            elif paths[0] == "item_groups":
-                handle_post_item_groups(self, user)
-
-            elif paths[0] == "item_types":
-                handle_post_item_types(self, user)
-
-            elif paths[0] == "inventories":
-                handle_post_inventories(self, user)
-
-            elif paths[0] == "suppliers":
-                handle_post_suppliers(self, user)
-
-            elif paths[0] == "orders":
-                handle_post_orders(self, user)
-
-            elif paths[0] == "clients":
-                handle_post_clients(self, user)
-
-            elif paths[0] == "shipments":
-                handle_post_shipments(self, user)
-
-            else:
-                self.error_status(404)
-
-        # ============================================================
-        # PUT
-        # ============================================================
-
-        elif method == "PUT":
-            if len(paths) < 2:
-                self.error_status(404)
+        # Every path parameter is an ID: invalid ID -> 400 (sent by get_id)
+        kwargs = dict(route.extra)
+        for name, value in params.items():
+            resource_id = self.get_id(value)
+            if resource_id is None:
                 return
 
-            ID = self.get_id(paths[1])
-            if ID is None:
-                return
+            kwargs[name] = resource_id
 
-            if paths[0] == "warehouses" and len(paths) == 2:
-                handle_put_warehouses(self, user, ID)
-
-            elif paths[0] == "locations" and len(paths) == 2:
-                handle_put_locations(self, user, ID)
-
-            elif paths[0] == "transfers":
-                if len(paths) == 2:
-                    handle_put_transfers(self, user, ID)
-
-                elif len(paths) == 3 and paths[2] == "commit":
-                    handle_put_transfers(self, user, ID, commit=True)
-
-                else:
-                    self.error_status(404)
-
-            elif paths[0] == "items" and len(paths) == 2:
-                handle_put_items(self, user, ID)
-
-            elif paths[0] == "item_lines" and len(paths) == 2:
-                handle_put_item_lines(self, user, ID)
-
-            elif paths[0] == "item_groups" and len(paths) == 2:
-                handle_put_item_groups(self, user, ID)
-
-            elif paths[0] == "item_types" and len(paths) == 2:
-                handle_put_item_types(self, user, ID)
-
-            elif paths[0] == "inventories" and len(paths) == 2:
-                handle_put_inventories(self, user, ID)
-
-            elif paths[0] == "suppliers" and len(paths) == 2:
-                handle_put_suppliers(self, user, ID)
-
-            elif paths[0] == "orders":
-                if len(paths) == 2:
-                    handle_put_orders(self, user, ID)
-
-                elif len(paths) == 3 and paths[2] == "items":
-                    handle_put_orders(self, user, ID, update_items=True)
-
-                else:
-                    self.error_status(404)
-
-            elif paths[0] == "clients" and len(paths) == 2:
-                handle_put_clients(self, user, ID)
-
-            elif paths[0] == "shipments":
-                if len(paths) == 2:
-                    handle_put_shipments(self, user, ID)
-
-                elif len(paths) == 3 and paths[2] == "orders":
-                    handle_put_shipments(self, user, ID, update_orders=True)
-
-                elif len(paths) == 3 and paths[2] == "items":
-                    handle_put_shipments(self, user, ID, update_items=True)
-
-                else:
-                    self.error_status(404)
-
-            else:
-                self.error_status(404)
-
-        # ============================================================
-        # DELETE
-        # ============================================================
-
-        elif method == "DELETE":
-            if len(paths) != 2:
-                self.error_status(404)
-                return
-
-            ID = self.get_id(paths[1])
-            if ID is None:
-                return
-
-            if paths[0] == "warehouses":
-                handle_delete_warehouses(self, user, ID)
-
-            elif paths[0] == "locations":
-                handle_delete_locations(self, user, ID)
-
-            elif paths[0] == "transfers":
-                handle_delete_transfers(self, user, ID)
-
-            elif paths[0] == "items":
-                handle_delete_items(self, user, ID)
-
-            elif paths[0] == "item_lines":
-                handle_delete_item_lines(self, user, ID)
-
-            elif paths[0] == "item_groups":
-                handle_delete_item_groups(self, user, ID)
-
-            elif paths[0] == "item_types":
-                handle_delete_item_types(self, user, ID)
-
-            elif paths[0] == "inventories":
-                handle_delete_inventories(self, user, ID)
-
-            elif paths[0] == "suppliers":
-                handle_delete_suppliers(self, user, ID)
-
-            elif paths[0] == "orders":
-                handle_delete_orders(self, user, ID)
-
-            elif paths[0] == "clients":
-                handle_delete_clients(self, user, ID)
-
-            elif paths[0] == "shipments":
-                handle_delete_shipments(self, user, ID)
-
-            else:
-                self.error_status(404)
-
-        else:
-            self.error_status(405)
+        route.handler(self, user, **kwargs)
 
     # HTTP METHODS
     def do_GET(self):
