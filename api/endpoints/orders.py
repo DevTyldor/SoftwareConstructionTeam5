@@ -10,7 +10,7 @@ def handle_get_orders(self, user, order_id=None, get_items=False):
         return
 
     if get_items:
-        orders = data_provider.fetch_order_pool().get_items_in_order(order_id)
+        orders = data_provider.fetch_order_pool().get_items_for_order(order_id)
 
     elif order_id is None:
         orders = data_provider.fetch_order_pool().get_orders()
@@ -45,7 +45,7 @@ def handle_put_orders(self, user, order_id, update_items=False):
         updated_items = read_json(self)
 
         order_manager = data_provider.fetch_order_pool()
-        order_manager.update_items_in_order(order_id, updated_items)
+        order_manager.update_items_for_order(order_id, updated_items)
         order_manager.save()
 
     else:
