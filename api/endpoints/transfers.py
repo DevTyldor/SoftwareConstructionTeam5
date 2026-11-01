@@ -24,6 +24,10 @@ def handle_get_transfers(self, user, transfer_id=None, get_items=False):
     else:
         transfers = data_provider.fetch_transfer_pool().get_transfer(transfer_id)
 
+        if transfers is None:
+            send_status(self, 404)
+            return
+
     send_json(self, transfers)
 
 
