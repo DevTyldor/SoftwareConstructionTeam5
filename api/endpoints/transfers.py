@@ -56,6 +56,11 @@ def handle_put_transfers(self, user, transfer_id, commit=False):
         return
 
     transfer = data_provider.fetch_transfer_pool().get_transfer(transfer_id)
+
+    if transfer.get("transfer_status") == "Processed":
+        send_status(self, 409)
+        return
+
     from_location_id = transfer["from_location_id"]
     to_location_id = transfer["to_location_id"]
 
