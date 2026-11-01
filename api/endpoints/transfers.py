@@ -10,7 +10,11 @@ def handle_get_transfers(self, user, transfer_id=None, get_items=False):
         return
 
     if get_items:
-        transfers = data_provider.fetch_transfer_pool().get_items_for_transfer(
+        if data_provider.fetch_transfer_pool().get_transfer(transfer_id) is None:
+            send_status(self, 404)
+            return
+
+        transfers =data_provider.fetch_transfer_pool().get_items_for_transfer(
             transfer_id
         )
 
