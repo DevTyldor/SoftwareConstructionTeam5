@@ -53,7 +53,7 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
         except (ValueError, TypeError):
             return None
 
-        return value if value > 0 else None
+        return value
 
     def get_id(self, value):
         parsed_id = self.parse_id(value)
@@ -61,6 +61,10 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
         if parsed_id is None:
             self.send_response(400)
             self.end_headers()
+            return None
+
+        if parsed_id <= 0:
+            self.send_status(404)
             return None
 
         return parsed_id
