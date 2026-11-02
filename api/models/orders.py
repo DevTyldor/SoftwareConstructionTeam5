@@ -19,7 +19,7 @@ class Orders(Base):
             return None
         return self._with_items(order)
 
-    def get_items_in_order(self, order_id):
+    def get_items_for_order(self, order_id):
         rows = data_provider.fetch_order_item_pool().get_items_for_order(order_id)
         return [{"item_id": r["item_id"], "amount": r["amount"]} for r in rows]
 
@@ -41,15 +41,15 @@ class Orders(Base):
         items = order.pop("items", None)
         self.update(order_id, order)
         if items is not None:
-            self.update_items_in_order(order_id, items)
+            self.update_items_for_order(order_id, items)
 
-    def update_items_in_order(self, order_id, items):
+    def update_items_for_order(self, order_id, items):
         """Replace the items of an order and keep `quantity_allocated` in sync.
 
         For each item, the change in ordered amount (new - old) is applied to the
         inventory row with the most on-hand stock for that item, clamped at 0 so
         `quantity_allocated` never goes negative."""
-        current = self.get_items_in_order(order_id)
+        current = self.get_items_for_order(order_id)
         current_by_item = {x["item_id"]: x["amount"] for x in current}
         new_by_item = {x["item_id"]: x["amount"] for x in items}
 
@@ -80,5 +80,5 @@ class Orders(Base):
 
     def _with_items(self, order):
         order = dict(order)
-        order["items"] = self.get_items_in_order(order["id"])
+        order["items"] = self.get_items_for_order(order["id"])
         return order

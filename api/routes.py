@@ -44,7 +44,7 @@ app = Router()
 # warehouses
 app.add_route("GET", "/warehouses", handle_get_warehouses)
 app.add_route("GET", "/warehouses/{warehouse_id}", handle_get_warehouses)
-app.add_route("GET", "/warehouses/{warehouse_id}/locations", handle_get_warehouses, locations=True)
+app.add_route("GET", "/warehouses/{warehouse_id}/locations", handle_get_warehouses, get_locations=True)
 app.add_route("POST", "/warehouses", handle_post_warehouses)
 app.add_route("PUT", "/warehouses/{warehouse_id}", handle_put_warehouses)
 app.add_route("DELETE", "/warehouses/{warehouse_id}", handle_delete_warehouses)

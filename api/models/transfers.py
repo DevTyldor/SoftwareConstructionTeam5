@@ -19,7 +19,7 @@ class Transfers(Base):
             return None
         return self._with_items(transfer)
 
-    def get_items_in_transfer(self, transfer_id):
+    def get_items_for_transfer(self, transfer_id):
         rows = data_provider.fetch_transfer_item_pool().get_items_for_transfer(transfer_id)
         return [{"item_id": r["item_id"], "amount": r["amount"]} for r in rows]
 
@@ -41,5 +41,5 @@ class Transfers(Base):
 
     def _with_items(self, transfer):
         transfer = dict(transfer)
-        transfer["items"] = self.get_items_in_transfer(transfer["id"])
+        transfer["items"] = self.get_items_for_transfer(transfer["id"])
         return transfer

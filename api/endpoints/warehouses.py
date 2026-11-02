@@ -4,12 +4,12 @@ from endpoints.base import check_access, read_json, send_json, send_status
 # GET /warehouses
 # GET /warehouses/{id}
 # GET /warehouses/{id}/locations
-def handle_get_warehouses(self, user, warehouse_id=None, locations=False):
+def handle_get_warehouses(self, user, warehouse_id=None, get_locations=False):
     if not check_access(self, user, "warehouses", "get"):
         return
 
-    if locations:
-        result = data_provider.fetch_location_pool().get_locations_in_warehouse(
+    if get_locations:
+        result = data_provider.fetch_location_pool().get_locations_for_warehouse(
             warehouse_id
         )
 

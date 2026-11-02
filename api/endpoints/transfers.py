@@ -10,7 +10,11 @@ def handle_get_transfers(self, user, transfer_id=None, get_items=False):
         return
 
     if get_items:
-        transfers = data_provider.fetch_transfer_pool().get_items_in_transfer(
+        if data_provider.fetch_transfer_pool().get_transfer(transfer_id) is None:
+            send_status(self, 404)
+            return
+
+        transfers = data_provider.fetch_transfer_pool().get_items_for_transfer(
             transfer_id
         )
 
@@ -19,6 +23,10 @@ def handle_get_transfers(self, user, transfer_id=None, get_items=False):
 
     else:
         transfers = data_provider.fetch_transfer_pool().get_transfer(transfer_id)
+
+        if transfers is None:
+            send_status(self, 404)
+            return
 
     send_json(self, transfers)
 
@@ -56,10 +64,31 @@ def handle_put_transfers(self, user, transfer_id, commit=False):
         return
 
     transfer = data_provider.fetch_transfer_pool().get_transfer(transfer_id)
+
+    if transfer.get("transfer_status") == "Processed":
+        send_status(self, 409)
+        return
+
     from_location_id = transfer["from_location_id"]
     to_location_id = transfer["to_location_id"]
 
     inventory_pool = data_provider.fetch_inventory_pool()
+
+    # Ik heb hier ff een dictionary gedaan want ik kwam erachter dat hhet eerst fout was.
+    # Eerst keek ik naar elke regel apart. Maar als hetzelfde item 2x in een transfer staat ging het mis
+    # Bijvoorbeeld 2x 60 en er is maar 100. Elke regel apart past wel maar samen is het 120 en dan kom je op -20
+    # Dus nu tel ik eerst alles per item op en kijk ik daarna pas of er genoeg is
+    needed = {}
+
+    for x in transfer["items"]:
+        needed[x["item_id"]] = needed.get(x["item_id"], 0) + x["amount"]
+
+    for item_id in needed:
+        src = inventory_pool.get_inventory(item_id, from_location_id)
+
+        if src is None or src["quantity_on_hand"] < needed[item_id]:
+            send_status(self, 400)
+            return
 
     for x in transfer["items"]:
         item_id = x["item_id"]

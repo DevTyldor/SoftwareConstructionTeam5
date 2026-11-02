@@ -16,6 +16,10 @@ def handle_get_items(self, user, item_id=None, get_inventory=False, get_totals=F
         )
 
     elif get_inventory:
+        if data_provider.fetch_item_pool().get_item(item_id) is None:
+            send_status(self, 404)
+            return
+
         items = data_provider.fetch_inventory_pool().get_inventories_for_item(item_id)
 
     elif item_id is None:

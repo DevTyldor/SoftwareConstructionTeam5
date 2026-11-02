@@ -14,7 +14,7 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
         except (ValueError, TypeError):
             return None
 
-        return value if value > 0 else None
+        return value
 
     def get_id(self, value):
         parsed_id = self.parse_id(value)
@@ -24,10 +24,14 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
             self.end_headers()
             return None
 
+        if parsed_id <= 0:
+            self.send_status(404)
+            return None
+
         return parsed_id
 
     # error status helper to remove duplicated logic
-    def error_status(self, status):
+    def send_status(self, status):
         self.send_response(status)
         self.end_headers()
 
@@ -38,13 +42,13 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
 
         # Validate API path
         if len(paths) < 3 or paths[0] != "api" or paths[1] != "v1":
-            self.error_status(404)
+            self.send_status(404)
             return
 
         # Remove /api/v1/ from the path
         paths = paths[2:]
 
-        user = self.get_user()
+        user = self.get_user_from_headers()
 
         # No or invalid API key: 401
         if user is None:
@@ -53,7 +57,7 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
             if length:
                 self.rfile.read(length)
 
-            self.error_status(401)
+            self.send_status(401)
             return
 
         # PUT and DELETE check the ID before the url (same order as the old if/elif code)
@@ -67,7 +71,7 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
 
         # Unknown url, or this method is not allowed on it: 404
         if match is None:
-            self.error_status(404)
+            self.send_status(404)
             return
 
         route, params = match
@@ -88,28 +92,28 @@ class RequestHandler(http.server.BaseHTTPRequestHandler):
         try:
             self.route_request("GET")
         except Exception:
-            self.error_status(500)
+            self.send_status(500)
 
     def do_POST(self):
         try:
             self.route_request("POST")
         except Exception:
-            self.error_status(500)
+            self.send_status(500)
 
     def do_PUT(self):
         try:
             self.route_request("PUT")
         except Exception:
-            self.error_status(500)
+            self.send_status(500)
 
     def do_DELETE(self):
         try:
             self.route_request("DELETE")
         except Exception:
-            self.error_status(500)
+            self.send_status(500)
 
     # AUTHENTICATION
-    def get_user(self):
+    def get_user_from_headers(self):
         api_key = self.headers.get("API_KEY")
 
         if not api_key:

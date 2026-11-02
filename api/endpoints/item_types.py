@@ -10,6 +10,10 @@ def handle_get_item_types(self, user, item_type_id=None, get_items=False):
         return
 
     if get_items:
+        if data_provider.fetch_item_type_pool().get_item_type(item_type_id) is None:
+            send_status(self, 404)
+            return
+
         item_types = data_provider.fetch_item_pool().get_items_for_item_type(
             item_type_id
         )
@@ -19,6 +23,10 @@ def handle_get_item_types(self, user, item_type_id=None, get_items=False):
 
     else:
         item_types = data_provider.fetch_item_type_pool().get_item_type(item_type_id)
+
+        if item_types is None:
+            send_status(self, 404)
+            return
 
     send_json(self, item_types)
 
