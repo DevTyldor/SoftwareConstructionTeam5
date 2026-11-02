@@ -13,12 +13,12 @@ def handle_get_shipments(
         return
 
     if get_orders:
-        shipments = data_provider.fetch_shipment_pool().get_order_ids_in_shipment(
+        shipments = data_provider.fetch_shipment_pool().get_order_ids_for_shipment(
             shipment_id
         )
 
     elif get_items:
-        shipments = data_provider.fetch_shipment_pool().get_items_in_shipment(
+        shipments = data_provider.fetch_shipment_pool().get_items_for_shipment(
             shipment_id
         )
 
@@ -62,11 +62,11 @@ def handle_put_shipments(
 
     if update_orders:
         updated_orders = read_json(self)
-        shipment_manager.update_orders_in_shipment(shipment_id, updated_orders)
+        shipment_manager.update_orders_for_shipment(shipment_id, updated_orders)
 
     elif update_items:
         updated_items = read_json(self)
-        shipment_manager.update_items_in_shipment(shipment_id, updated_items)
+        shipment_manager.update_items_for_shipment(shipment_id, updated_items)
 
     else:
         updated_shipment = read_json(self)

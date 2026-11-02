@@ -30,7 +30,7 @@ class Items(Base):
         result = []
         for x in self.data:
             if x["item_type_id"] == item_type_id:
-                result.append(x["id"])
+                result.append(x)
         return result
 
     def get_items_for_supplier(self, supplier_id):

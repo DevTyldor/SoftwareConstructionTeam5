@@ -19,11 +19,11 @@ class Shipments(Base):
             return None
         return self._with_items(shipment)
 
-    def get_items_in_shipment(self, shipment_id):
+    def get_items_for_shipment(self, shipment_id):
         rows = data_provider.fetch_shipment_item_pool().get_items_for_shipment(shipment_id)
         return [{"item_id": r["item_id"], "amount": r["amount"]} for r in rows]
 
-    def get_order_ids_in_shipment(self, shipment_id):
+    def get_order_ids_for_shipment(self, shipment_id):
         """In the new schema shipment.order_id -> order.id (1:1), so a shipment
         carries exactly one order id (or none)."""
         shipment = self.get_by_id(shipment_id)
@@ -41,11 +41,11 @@ class Shipments(Base):
         items = shipment.pop("items", None)
         self.update(shipment_id, shipment)
         if items is not None:
-            self.update_items_in_shipment(shipment_id, items)
+            self.update_items_for_shipment(shipment_id, items)
 
-    def update_items_in_shipment(self, shipment_id, items):
+    def update_items_for_shipment(self, shipment_id, items):
         """Replace the items of a shipment and keep `quantity_ordered` in sync."""
-        current = self.get_items_in_shipment(shipment_id)
+        current = self.get_items_for_shipment(shipment_id)
         current_by_item = {x["item_id"]: x["amount"] for x in current}
         new_by_item = {x["item_id"]: x["amount"] for x in items}
 
@@ -70,7 +70,7 @@ class Shipments(Base):
         target["quantity_ordered"] = max(0, target["quantity_ordered"] + delta)
         inventory_pool.update_inventory(item_id, target["location_id"], target)
 
-    def update_orders_in_shipment(self, shipment_id, order_ids):
+    def update_orders_for_shipment(self, shipment_id, order_ids):
         """In the new schema a shipment references a single order (shipment.order_id).
         We accept a list for backwards compatibility with the v1 endpoint and keep
         the first id, clearing the link when the list is empty."""
@@ -85,5 +85,5 @@ class Shipments(Base):
 
     def _with_items(self, shipment):
         shipment = dict(shipment)
-        shipment["items"] = self.get_items_in_shipment(shipment["id"])
+        shipment["items"] = self.get_items_for_shipment(shipment["id"])
         return shipment

@@ -12,7 +12,7 @@ class Locations(Base):
     def get_location(self, location_id):
         return self.get_by_id(location_id)
 
-    def get_locations_in_warehouse(self, warehouse_id):
+    def get_locations_for_warehouse(self, warehouse_id):
         result = []
         for x in self.data:
             if x["warehouse_id"] == warehouse_id:
