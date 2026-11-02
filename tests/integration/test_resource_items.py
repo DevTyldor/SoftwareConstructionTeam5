@@ -60,6 +60,17 @@ def test_get_item_inventory_totals_match_inventory(_data):
     assert totals['total_ordered'] == sum(x['quantity_ordered'] for x in inventories)
     assert totals['total_allocated'] == sum(x['quantity_allocated'] for x in inventories)
     assert totals['total_available'] == sum(x['quantity_on_hand'] - x['quantity_allocated'] for x in inventories)
+    
+def test_post_item_then_get(_data):
+    url = _data['url'] + 'items'
+    new_item = {'id': 99990, 'code': 'ITM-099990', 'description': 'Test'}
+
+    response = requests.post(url, json=new_item, headers={'API_KEY': _data['receiving_key']})
+    assert response.status_code == 201
+
+    response = requests.get(url + '/99990', headers={'API_KEY': _data['api_key']})
+    assert response.status_code == 200
+    assert response.json()['code'] == 'ITM-099990'
  
  
 # Bad flow
@@ -167,6 +178,11 @@ def test_put_item_partial_body(_data):
     # Should give 400
     assert response.status_code == 400
  
+def test_post_item_id_is_string(_data):
+    url = _data['url'] + 'items'
+    response = requests.post(url, json={'id': '99991', 'code': 'ITM-099991'}, headers={'API_KEY': _data['receiving_key']})
+    # Should give 400, not 201 with an item that can't be found
+    assert response.status_code == 400
  
 # Error flow
  
