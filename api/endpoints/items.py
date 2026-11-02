@@ -33,6 +33,12 @@ def handle_post_items(self, user):
         return
 
     new_item = read_json(self)
+    
+    #id must be positive
+    item_id = new_item.get("id") if isinstance(new_item, dict) else None
+    if not isinstance(item_id, int) or isinstance(item_id, bool) or item_id <= 0:
+        send_status(self, 400)
+        return
 
     item_manager = data_provider.fetch_item_pool()
     item_manager.add_item(new_item)
