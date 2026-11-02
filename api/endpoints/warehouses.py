@@ -1,5 +1,6 @@
 from providers import data_provider
 from endpoints.base import check_access, read_json, send_json, send_status
+from validators.warehouse_validator import validate_warehouse
 
 # GET /warehouses
 # GET /warehouses/{id}
@@ -29,6 +30,10 @@ def handle_post_warehouses(self, user):
 
     new_warehouse = read_json(self)
 
+    if not validate_warehouse(new_warehouse):
+        send_status(self, 400)
+        return
+
     warehouse_manager = data_provider.fetch_warehouse_pool()
     warehouse_manager.add_warehouse(new_warehouse)
     warehouse_manager.save()
@@ -42,6 +47,10 @@ def handle_put_warehouses(self, user, warehouse_id):
         return
 
     updated_warehouse = read_json(self)
+
+    if not validate_warehouse(updated_warehouse):
+        send_status(self, 400)
+        return
 
     warehouse_manager = data_provider.fetch_warehouse_pool()
     warehouse_manager.update_warehouse(warehouse_id, updated_warehouse)
