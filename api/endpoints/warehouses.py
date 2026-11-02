@@ -2,6 +2,7 @@ from providers import data_provider
 from endpoints.base import check_access, read_json, send_json, send_status
 from validators.warehouse_validator import validate_warehouse
 
+
 # GET /warehouses
 # GET /warehouses/{id}
 # GET /warehouses/{id}/locations
@@ -35,6 +36,16 @@ def handle_post_warehouses(self, user):
         return
 
     warehouse_manager = data_provider.fetch_warehouse_pool()
+    existing_warehouses = warehouse_manager.get_warehouses()
+
+    if any(
+        warehouse["id"] == new_warehouse["id"]
+        or warehouse["code"].lower() == new_warehouse["code"].lower()
+        for warehouse in existing_warehouses
+    ):
+        send_status(self, 409)
+        return
+
     warehouse_manager.add_warehouse(new_warehouse)
     warehouse_manager.save()
 
@@ -57,7 +68,7 @@ def handle_put_warehouses(self, user, warehouse_id):
     warehouse_manager.save()
 
     send_status(self, 200)
-    
+
 
 # DELETE /warehouses/{id}
 def handle_delete_warehouses(self, user, warehouse_id):

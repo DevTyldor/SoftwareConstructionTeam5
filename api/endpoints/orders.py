@@ -33,6 +33,16 @@ def handle_post_orders(self, user):
         return
 
     order_manager = data_provider.fetch_order_pool()
+    existing_orders = order_manager.get_orders()
+
+    if any(
+        order["id"] == new_order["id"]
+        or order["reference"].lower() == new_order["reference"].lower()
+        for order in existing_orders
+    ):
+        send_status(self, 409)
+        return
+
     order_manager.add_order(new_order)
     order_manager.save()
 

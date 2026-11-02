@@ -29,6 +29,17 @@ def handle_post_locations(self, user):
         return
 
     location_manager = data_provider.fetch_location_pool()
+
+    existing_locations = location_manager.get_locations()
+
+    if any(
+        location["id"] == new_location["id"]
+        or location["code"].lower() == new_location["code"].lower()
+        for location in existing_locations
+    ):
+        send_status(self, 409)
+        return
+
     location_manager.add_location(new_location)
     location_manager.save()
 
