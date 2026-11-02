@@ -1,5 +1,6 @@
 from providers import data_provider
 from endpoints.base import check_access, read_json, send_json, send_status
+from validators.location_validator import validate_location
 
 
 # GET /locations
@@ -23,6 +24,9 @@ def handle_post_locations(self, user):
         return
 
     new_location = read_json(self)
+    if not validate_location(new_location):
+        send_status(self, 400)
+        return
 
     location_manager = data_provider.fetch_location_pool()
     location_manager.add_location(new_location)
@@ -37,6 +41,9 @@ def handle_put_locations(self, user, location_id):
         return
 
     updated_location = read_json(self)
+    if not validate_location(updated_location):
+        send_status(self, 400)
+        return
 
     location_manager = data_provider.fetch_location_pool()
     location_manager.update_location(location_id, updated_location)
