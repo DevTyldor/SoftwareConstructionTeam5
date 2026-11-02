@@ -1,5 +1,6 @@
 from providers import data_provider
 from endpoints.base import check_access, read_json, send_json, send_status
+from validators.order_validator import validate_order, validate_order_item
 
 
 # GET /orders
@@ -27,6 +28,9 @@ def handle_post_orders(self, user):
         return
 
     new_order = read_json(self)
+    if not validate_order(new_order):
+        send_status(self, 400)
+        return
 
     order_manager = data_provider.fetch_order_pool()
     order_manager.add_order(new_order)
@@ -50,6 +54,9 @@ def handle_put_orders(self, user, order_id, update_items=False):
 
     else:
         updated_order = read_json(self)
+        if not validate_order(updated_order):
+            send_status(self, 400)
+            return
 
         order_manager = data_provider.fetch_order_pool()
         order_manager.update_order(order_id, updated_order)

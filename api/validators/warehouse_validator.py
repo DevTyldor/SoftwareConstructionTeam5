@@ -1,4 +1,3 @@
-
 import re
 from datetime import datetime
 
@@ -18,10 +17,7 @@ def validate_warehouse(warehouse: dict) -> bool:
         "contact_email": str,
     }
 
-    optional_fields = {
-        "created_at": str,
-        "updated_at": str
-    }
+    optional_fields = {"created_at": str, "updated_at": str}
 
     allowed_fields = set(required_fields) | set(optional_fields)
 
@@ -79,9 +75,7 @@ def validate_warehouse(warehouse: dict) -> bool:
     for field in ("created_at", "updated_at"):
         if field in warehouse:
             try:
-                datetime.fromisoformat(
-                    warehouse[field].replace("Z", "+00:00")
-                )
+                datetime.fromisoformat(warehouse[field].replace("Z", "+00:00"))
             except ValueError:
                 return False
 
