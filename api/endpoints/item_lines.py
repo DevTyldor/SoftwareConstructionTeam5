@@ -19,6 +19,10 @@ def handle_get_item_lines(self, user, item_line_id=None, get_items=False):
 
     else:
         item_lines = data_provider.fetch_item_line_pool().get_item_line(item_line_id)
+        
+        if item_lines is None:
+            send_status(self, 404)
+            return
 
     send_json(self, item_lines)
 
