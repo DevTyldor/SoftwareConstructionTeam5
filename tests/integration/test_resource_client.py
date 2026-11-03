@@ -2,7 +2,7 @@ import os
 import pytest
 import requests
 
-#This file runs integration tests on resource clients
+#This file runs tests on all endpoints of resource clients
 @pytest.fixture
 def _data():
     return {

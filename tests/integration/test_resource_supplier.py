@@ -2,9 +2,6 @@ import pytest
 import requests
 
 #this resource runs test on all endpoints of the resource supplier. 
-#It is a template for testing other resources as well. 
-#The test cases are defined in the test_get_supplier function, which returns a list of dictionaries representing each test case.
-# Each dictionary contains the name of the test, the HTTP method, the URL, the expected status code, and an optional payload for POST requests.
 
 @pytest.fixture
 def _data():
