@@ -69,6 +69,11 @@ def handle_delete_locations(self, user, location_id):
         return
 
     location_manager = data_provider.fetch_location_pool()
+
+    if location_manager.get_location(location_id) is None:
+        send_status(self, 404)
+        return
+
     location_manager.remove_location(location_id)
     location_manager.save()
 
