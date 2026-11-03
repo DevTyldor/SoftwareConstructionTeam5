@@ -10,14 +10,24 @@ def handle_get_orders(self, user, order_id=None, get_items=False):
     if not check_access(self, user, "orders", "get"):
         return
 
+    order_manager = data_provider.fetch_order_pool()
+
     if get_items:
-        orders = data_provider.fetch_order_pool().get_items_for_order(order_id)
+        if order_manager.get_order(order_id) is None:
+            send_status(self, 404)
+            return
+
+        orders = order_manager.get_items_for_order(order_id)
 
     elif order_id is None:
-        orders = data_provider.fetch_order_pool().get_orders()
+        orders = order_manager.get_orders()
 
     else:
-        orders = data_provider.fetch_order_pool().get_order(order_id)
+        orders = order_manager.get_order(order_id)
+
+        if orders is None:
+            send_status(self, 404)
+            return
 
     send_json(self, orders)
 

@@ -15,6 +15,10 @@ def handle_get_locations(self, user, location_id=None):
     else:
         locations = data_provider.fetch_location_pool().get_location(location_id)
 
+        if locations is None:
+            send_status(self, 404)
+            return
+
     send_json(self, locations)
 
 
