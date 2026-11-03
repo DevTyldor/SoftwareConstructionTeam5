@@ -24,6 +24,10 @@ def handle_get_item_groups(self, user, item_group_id=None, get_items=False):
             item_group_id
         )
 
+        if item_groups is None:
+            send_status(self, 404)
+            return
+
     send_json(self, item_groups)
 
 
