@@ -81,6 +81,11 @@ def handle_delete_orders(self, user, order_id):
         return
 
     order_manager = data_provider.fetch_order_pool()
+
+    if order_manager.get_order(order_id) is None:
+        send_status(self, 404)
+        return
+
     order_manager.remove_order(order_id)
     order_manager.save()
 

@@ -76,6 +76,11 @@ def handle_delete_warehouses(self, user, warehouse_id):
         return
 
     warehouse_manager = data_provider.fetch_warehouse_pool()
+
+    if warehouse_manager.get_warehouse(warehouse_id) is None:
+        send_status(self, 404)
+        return
+
     warehouse_manager.remove_warehouse(warehouse_id)
     warehouse_manager.save()
 
