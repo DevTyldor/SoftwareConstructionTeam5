@@ -10,16 +10,26 @@ def handle_get_warehouses(self, user, warehouse_id=None, get_locations=False):
     if not check_access(self, user, "warehouses", "get"):
         return
 
+    warehouse_manager = data_provider.fetch_warehouse_pool()
+
     if get_locations:
+        if warehouse_manager.get_warehouse(warehouse_id) is None:
+            send_status(self, 404)
+            return
+
         result = data_provider.fetch_location_pool().get_locations_for_warehouse(
             warehouse_id
         )
 
     elif warehouse_id is None:
-        result = data_provider.fetch_warehouse_pool().get_warehouses()
+        result = warehouse_manager.get_warehouses()
 
     else:
-        result = data_provider.fetch_warehouse_pool().get_warehouse(warehouse_id)
+        result = warehouse_manager.get_warehouse(warehouse_id)
+
+        if result is None:
+            send_status(self, 404)
+            return
 
     send_json(self, result)
 
