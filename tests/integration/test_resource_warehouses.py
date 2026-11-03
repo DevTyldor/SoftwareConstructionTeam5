@@ -61,9 +61,10 @@ def test_GET_warehouse_location_by_id(_data):
 
 def test_POST_warehouse_creation(_data):
     url = _data["url"] + "warehouses"
+    warehouse_id = generate_random_id()
 
     warehouse = {
-        "id": 999999,
+        "id": warehouse_id,
         "code": "BLW-EFC",
         "name": "Jumbo EFC Utrecht",
         "address": "Laan van Mathenesse 9a",
@@ -83,7 +84,7 @@ def test_POST_warehouse_creation(_data):
     assert response.status_code == 201
 
     response = requests.get(
-        _data["url"] + "warehouses/999999", headers={"API_KEY": _data["api_key"]}
+        _data["url"] + f"warehouses/{warehouse_id}", headers={"API_KEY": _data["api_key"]}
     )
 
     status_code = response.status_code
@@ -562,8 +563,8 @@ def test_POST_warehouse_creation_duplicate_id(_data):
     response = requests.post(url, headers={"API_KEY": _data["api_key"]}, json=warehouse)
 
     assert (
-        response.status_code == 400
-    ), f"API returned wrong status code: {response.status_code}, should be 400"
+        response.status_code == 409
+    ), f"API returned wrong status code: {response.status_code}, should be 409"
 
     response = requests.get(
         _data["url"] + "warehouses/1", headers={"API_KEY": _data["api_key"]}
