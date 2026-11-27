@@ -248,7 +248,7 @@ def test_POST_warehouse_creation_unauthorized(_data):
     ), f"API returned wrong status code: {response.status_code}, should be 403"
 
     response = requests.get(
-        _data["url"] + "warehouses/999999999", headers={"API_KEY": _data["api_key"]}
+        _data["url"] + "warehouses/999999", headers={"API_KEY": _data["api_key"]}
     )
 
     status_code = response.status_code
@@ -356,7 +356,7 @@ def test_POST_warehouse_creation_no_key(_data):
     ), f"API returned wrong status code: {response.status_code}, should be 401"
 
     response = requests.get(
-        _data["url"] + "warehouses/999999999", headers={"API_KEY": _data["api_key"]}
+        _data["url"] + "warehouses/999999", headers={"API_KEY": _data["api_key"]}
     )
 
     status_code = response.status_code
@@ -590,7 +590,7 @@ def test_GET_warehouse_invalid_id(_data):
 
     assert (
         response.status_code == 400
-    ), f"API returned wrong status code: {response.status_code}, should be 404"
+    ), f"API returned wrong status code: {response.status_code}, should be 400"
 
 
 def test_GET_warehouse_invalid_path(_data):
