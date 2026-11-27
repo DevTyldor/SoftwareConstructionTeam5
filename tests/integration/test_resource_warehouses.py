@@ -585,7 +585,6 @@ def test_GET_warehouse_invalid_id(_data):
 
     url = _data["url"] + "warehouses/abc"
 
-    # Send a GET request using an invalid warehouse ID
     response = requests.get(url, headers={"API_KEY": _data["api_key"]})
 
     assert (
@@ -597,10 +596,8 @@ def test_GET_warehouse_invalid_path(_data):
 
     url = _data["url"] + "warehouses/1/invalid"
 
-    # Send a GET request using an invalid resource path
     response = requests.get(url, headers={"API_KEY": _data["api_key"]})
 
-    # Verify that the API rejects the invalid resource path
     assert (
         response.status_code == 404
     ), f"API returned wrong status code: {response.status_code}, should be 404"
