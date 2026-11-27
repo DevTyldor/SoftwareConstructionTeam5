@@ -606,7 +606,7 @@ def test_GET_warehouse_invalid_path(_data):
     ), f"API returned wrong status code: {response.status_code}, should be 404"
 
 
-def test_PATCH_orders_unsupported_method(_data):
+def test_PATCH_warehouses_unsupported_method(_data):
     response = requests.patch(
         _data["url"] + "warehouses",
         headers={"API_KEY": _data["api_key"]},
