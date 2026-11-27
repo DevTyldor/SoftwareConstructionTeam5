@@ -248,7 +248,7 @@ def test_POST_warehouse_creation_unauthorized(_data):
     ), f"API returned wrong status code: {response.status_code}, should be 403"
 
     response = requests.get(
-        _data["url"] + "warehouses/999999999", headers={"API_KEY": _data["api_key"]}
+        _data["url"] + "warehouses/999999", headers={"API_KEY": _data["api_key"]}
     )
 
     status_code = response.status_code
@@ -356,7 +356,7 @@ def test_POST_warehouse_creation_no_key(_data):
     ), f"API returned wrong status code: {response.status_code}, should be 401"
 
     response = requests.get(
-        _data["url"] + "warehouses/999999999", headers={"API_KEY": _data["api_key"]}
+        _data["url"] + "warehouses/999999", headers={"API_KEY": _data["api_key"]}
     )
 
     status_code = response.status_code
@@ -585,28 +585,25 @@ def test_GET_warehouse_invalid_id(_data):
 
     url = _data["url"] + "warehouses/abc"
 
-    # Send a GET request using an invalid warehouse ID
     response = requests.get(url, headers={"API_KEY": _data["api_key"]})
 
     assert (
         response.status_code == 400
-    ), f"API returned wrong status code: {response.status_code}, should be 404"
+    ), f"API returned wrong status code: {response.status_code}, should be 400"
 
 
 def test_GET_warehouse_invalid_path(_data):
 
     url = _data["url"] + "warehouses/1/invalid"
 
-    # Send a GET request using an invalid resource path
     response = requests.get(url, headers={"API_KEY": _data["api_key"]})
 
-    # Verify that the API rejects the invalid resource path
     assert (
         response.status_code == 404
     ), f"API returned wrong status code: {response.status_code}, should be 404"
 
 
-def test_PATCH_orders_unsupported_method(_data):
+def test_PATCH_warehouses_unsupported_method(_data):
     response = requests.patch(
         _data["url"] + "warehouses",
         headers={"API_KEY": _data["api_key"]},

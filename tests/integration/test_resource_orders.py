@@ -367,7 +367,7 @@ def test_GET_order_negative_id(_data):
         headers={"API_KEY": _data["api_key"]},
     )
 
-    assert response.status_code in (200, 400, 404)
+    assert response.status_code == 404, "API returned wrong status code, should be 404."
     if response.status_code == 200:
         assert response.json() is None, "API returned an order for a negative ID"
 
@@ -556,10 +556,7 @@ def test_POST_order_creation_duplicate_id(_data):
         json=order,
     )
 
-    assert response.status_code in (
-        400,
-        409,
-    ), f"API returned wrong status code: {response.status_code}, should reject a duplicate ID"
+    assert response.status_code == 409, f"API returned wrong status code: {response.status_code}, should reject a duplicate ID"
 
     response = requests.get(
         _data["url"] + f"orders/{order['id']}",
