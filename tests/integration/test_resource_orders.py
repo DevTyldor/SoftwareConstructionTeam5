@@ -556,10 +556,7 @@ def test_POST_order_creation_duplicate_id(_data):
         json=order,
     )
 
-    assert response.status_code in (
-        400,
-        409,
-    ), f"API returned wrong status code: {response.status_code}, should reject a duplicate ID"
+    assert response.status_code == 409, f"API returned wrong status code: {response.status_code}, should reject a duplicate ID"
 
     response = requests.get(
         _data["url"] + f"orders/{order['id']}",
